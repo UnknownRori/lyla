@@ -1,0 +1,3 @@
+#pragma once
+
+#define DISCORD_APP_ID "1554571515914100827"

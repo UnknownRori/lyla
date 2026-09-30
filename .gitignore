@@ -16,3 +16,4 @@ builddir/
 
 songs/*/*
 
+env.h

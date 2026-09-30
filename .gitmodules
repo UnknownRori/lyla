@@ -1,3 +1,6 @@
 [submodule "external/rstb"]
 	path = external/rstb
 	url = https://github.com/UnknownRori/rstb
+[submodule "external/tray"]
+	path = external/tray
+	url = https://github.com/zserge/tray
