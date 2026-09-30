@@ -1,0 +1,9 @@
+compile_commands.json
+builddir/
+
+*.png
+*.ttf
+
+songs/*/*
+*.ttf
+

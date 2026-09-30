@@ -1,0 +1,4 @@
+[wrap-git]
+url = http://localhost:3000/UnknownRori/raylib.git
+revision = main
+depth = 1

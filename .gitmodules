@@ -1,0 +1,3 @@
+[submodule "external/rstb"]
+	path = external/rstb
+	url = https://github.com/UnknownRori/rstb
