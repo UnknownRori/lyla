@@ -20,3 +20,42 @@ applications, and to alter it and redistribute it freely, subject to the followi
 3. This notice may not be removed or altered from any source distribution.
 
 ---
+
+QR-Code Generator
+Website: https://github.com/nayuki/QR-Code-generator/
+License: MIT License
+
+Copyright © 2026 Project Nayuki. (MIT License)
+https://www.nayuki.io/page/qr-code-generator-library
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, publish, distribute, 
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+The Software is provided "as is", without warranty of any kind, express or implied, 
+including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. 
+In no event shall the authors or copyright holders be liable for any claim, damages or other liability, 
+whether in an action of contract, tort or otherwise, arising from, out of or in connection with the Software 
+or the use or other dealings in the Software.
+
+---
+
+FOT-Yuruka Std Font 
+Website: https://fontworks.co.jp/
+License: ...
+
+Copyright © 2012-2013 Fontworks Inc. All Rights Reserved.
+
+FOT-Yuruka Std is a typeface designed for educational and typographic study purposes. 
+It's free to download for personal, non-commercial projects — things like school assignments, 
+personal design practice, or hobby work.
+
+Commercial use is not permitted under this license. 
+If you'd like to use FOT-Yuruka Std in client work, branding, or any revenue-generating project, 
+please contact the foundry/designer for commercial licensing terms.
+
+---
