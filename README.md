@@ -1,5 +1,11 @@
 # Lyla - Overly-ambitious music player
 
+
+
+https://github.com/user-attachments/assets/87132c79-4ad7-4bd0-891a-5f234814d6b6
+
+Music by [Rigel Theatre](https://www.rigeltheatre.com/)
+
 Lyla is a music player with built in visualization inspired by [tsoding](https://github.com/tsoding/) and since
 the visualization is on start of the stream and not yet open source I'm going to make my very own with my own idea.
 
