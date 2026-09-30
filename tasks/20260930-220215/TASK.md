@@ -1,6 +1,6 @@
 # add playlist randomizer without needing shuffling the playlist array
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: playlist
 

@@ -12,12 +12,17 @@ src_files = files(
   './ui/timeline.c',
   './ui/track_info.c',
   './ui/background.c',
+  './ui/overlay.c',
   './music/player.c',
   './music/track.c',
   './music/playlist.c',
+  './music/randomizer.c',
   './thirdparty/discord.c',
   './thirdparty/qrcodegen.c',
   './resources.c',
+  './platform/tray.c',
+  './platform/wallpaper.c',
+  './platform/force.c',
 )
 if host_machine.system() == 'windows'
   winmod = import('windows')
@@ -37,5 +42,6 @@ executable(
   src_files,
   include_directories: [rstb_inc],
   dependencies: dependencies,
+  link_args: ['-static'],
   kwargs: exe_args,
 )

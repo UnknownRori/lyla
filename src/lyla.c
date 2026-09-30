@@ -2,6 +2,9 @@
 #include <stdlib.h>
 
 #include "lyla.h"
+#include "music/randomizer.h"
+#include "platform/force.h"
+#include "platform/tray.h"
 #include "thirdparty/discord.h"
 #include "env.h"
 #include "music/player.h"
@@ -15,14 +18,29 @@
 static Playlist playlist = {0};
 static FFT_Analyzer* analyzer = NULL;
 static bool should_close = false;
+static bool shuffle = false;
+static bool show_track_info = true;
+static bool force_track_show = false;
+static bool force_on_top = false;
+static PlaylistRandomizer randomizer;
 
-void play_next_song()
+void play_song()
 {
     if (playlist.count <= 0) return;
     Track track = {0};
     playlist_get_current(&playlist, &track);
     player_play_track(track);
     text_prepare(TextFormat("%s %s %s", player_name(), player_artist(),  player_album()));
+}
+
+void next_song()
+{
+    if (shuffle) {
+        u32 idx = playlist_randomizer_next(&randomizer);
+        playlist_set(&playlist, idx % playlist.count);
+        return;
+    }
+    playlist_next(&playlist);
 }
 
 static void handle_dropped_files(void)
@@ -36,7 +54,8 @@ static void handle_dropped_files(void)
             playlist_append(&playlist, track);
         }
     }
-    if (player_paused()) play_next_song();
+    playlist_randomizer_init(&randomizer, playlist.count);
+    if (player_paused()) play_song();
     UnloadDroppedFiles(files);
 }
 
@@ -47,17 +66,26 @@ static void handle_keyboard(void)
         SetWindowState(FLAG_WINDOW_UNDECORATED);
     }
 
-    if (hud_update_playlist(&playlist, play_next_song)) {
+    if (hud_update_playlist(&playlist, play_song)) {
         return;
     }
 
     if (IsKeyPressed(KEY_M)) player_toggle_mute();
     if (IsKeyPressed(KEY_R)) player_reset_progress(0.0);
+    if (IsKeyPressed(KEY_S)) shuffle = !shuffle;
+    if (IsKeyPressed(KEY_F1)) {
+        force_on_top = !force_on_top;
+        set_window_ontop(force_on_top);
+    }
     if (IsKeyDown(KEY_UP))   player_change_volume(+0.5f*GetFrameTime());
     if (IsKeyDown(KEY_DOWN)) player_change_volume(-0.5f*GetFrameTime());
+    if (IsKeyPressed(KEY_T)) {
+        show_track_info = !show_track_info;
+        force_track_show = true;
+    }
     if (IsKeyPressed(KEY_ENTER)) {
-        playlist_next(&playlist);
-        play_next_song();
+        next_song();
+        play_song();
     }
 
     if (player_has_track()) {
@@ -71,6 +99,12 @@ static void draw_frame()
 {
     int w = GetScreenWidth();
     int h = GetScreenHeight();
+
+    if ((w < 256 || h < 256) && !force_track_show) {
+        show_track_info = false;
+    } else if (!force_track_show) {
+        show_track_info = true;
+    }
 
     size_t m = fft_analyzer_analyze(analyzer, GetFrameTime());
 
@@ -99,11 +133,12 @@ static void draw_frame()
                           detach);
                           
         hud_draw_timeline(w, h);
-        hud_draw_track_info(current, w, h);
+        if (show_track_info) hud_draw_track_info(current, w, h);
     } else {
         hud_draw_idle(w, h);
     }
 
+    hud_overlay_pause(w, h);
     hud_render_playlist(&playlist, w, h);
     hud_draw_notifications(w, h);
 
@@ -128,26 +163,29 @@ void lyla_init(void)
 
     playlist_load_ini(&playlist, "playlists.ini");
     if (playlist.count > 0 ) {
-        play_next_song();
+        play_song();
     }
 
     discord_init(DISCORD_APP_ID);
+    playlist_randomizer_init(&randomizer, playlist.count);
+    platform_tray_init();
 }
 
 bool lyla_should_close()
 {
-    return should_close;
+    return should_close || platform_tray_exit_signal();
 }
 
 void lyla_update(void) 
 {
+    platform_tray_update();
     input_default_update();
     if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
         should_close = true;
     }
     if (player_progress() > 0.995) {
-        playlist_next(&playlist);
-        play_next_song();
+        next_song();
+        play_song();
     }
     handle_dropped_files();
     handle_keyboard();
@@ -158,6 +196,7 @@ void lyla_update(void)
 }
 void lyla_shutdown(void) 
 {
+    platform_tray_shutdown();
     hud_background_shutdown();
     player_shutdown();
     text_shutdown();
