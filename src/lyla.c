@@ -4,8 +4,10 @@
 
 #include "lyla.h"
 #include "music/randomizer.h"
+#include "music/tag.h"
 #include "platform/force.h"
 #include "platform/tray.h"
+#include "resources.h"
 #include "thirdparty/discord.h"
 #include "env.h"
 #include "music/player.h"
@@ -55,11 +57,13 @@ static void handle_dropped_files(void)
     for (unsigned int i = 0; i < files.count; ++i) {
         Track track = {0};
         if (track_load(&track, files.paths[i])) {
+            tag_meta_load(&track, files.paths[i]);
             playlist_append(&playlist, track);
         }
     }
     playlist_randomizer_init(&randomizer, playlist.count);
-    if (player_paused()) play_song();
+    playlist_set(&playlist, playlist.count - 1);
+    play_song();
     UnloadDroppedFiles(files);
 }
 
@@ -76,6 +80,11 @@ static void handle_keyboard(f32 dt)
 
     if (input_key_pressed(KEY_M)) player_toggle_mute();
     if (input_key_pressed(KEY_R)) player_reset_progress();
+    if (input_key_pressed(KEY_C)) {
+        playlist.count = 0; // TODO : De-allocate cached resource
+        resource_reset();
+        player_shutdown();
+    }
     if (input_key_pressed(KEY_S)) shuffle = !shuffle;
     if (input_key_pressed(KEY_D)) force_detach = !force_detach;
     if (input_key_pressed(KEY_F1)) {

@@ -15,9 +15,13 @@ rconfig_proj = subproject('rconfig', default_options: ['default_library=static']
 rconfig_dep = rconfig_proj.get_variable('rconfig_dep')
 
 cmake   = import('cmake')
-discord_opt = cmake.subproject_options()
 
+discord_opt = cmake.subproject_options()
 discord = cmake.subproject('discord', options: discord_opt)
 discord_dep = discord.dependency('discord-rpc')
+
+taglib_opt = cmake.subproject_options()
+taglib = cmake.subproject('taglib', options: taglib_opt)
+taglib_dep = taglib.dependency('tag_c')
 
 subdir('src')

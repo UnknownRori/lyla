@@ -32,6 +32,8 @@ int main()
     SetTargetFPS(60);
 
     lyla_init();
+    Image img = LoadImage("icon.png");
+    SetWindowIcon(img);
 
     while (!WindowShouldClose()) {
         if (lyla_should_close()) {

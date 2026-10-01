@@ -18,6 +18,7 @@ src_files = files(
   './music/track.c',
   './music/playlist.c',
   './music/randomizer.c',
+  './music/tag.c',
   './thirdparty/discord.c',
   './thirdparty/qrcodegen.c',
   './resources.c',
@@ -36,7 +37,7 @@ if host_machine.system() == 'windows' and (get_option('buildtype') == 'release' 
   exe_args += {'win_subsystem': 'windows'}
 endif
 
-dependencies = [raylib_dep, rconfig_dep, discord_dep]
+dependencies = [raylib_dep, rconfig_dep, discord_dep, taglib_dep]
 
 executable(
   meson.project_name(),

@@ -105,7 +105,7 @@ static size_t playlist_selected_index = 0;
 
 bool hud_update_playlist(Playlist* playlist, void (*play_next_song)(void))
 {
-    if (input_key_pressed(KEY_TAB)) {
+    if (input_key_pressed(KEY_GRAVE)) {
         show_playlist = !show_playlist;
         if (show_playlist) {
             playlist_selected_index = playlist->current;
