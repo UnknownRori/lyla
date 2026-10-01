@@ -32,7 +32,7 @@ static bool force_track_show = false;
 static bool force_on_top = false;
 static bool force_detach = false;
 static PlaylistRandomizer randomizer;
-static Texture* marking = NULL;
+static Texture marking = {0};
 
 void play_song()
 {
@@ -155,6 +155,7 @@ static void draw_frame(int w, int h, f32 dt)
         hud_draw_timeline(w, h);
         if (show_track_info) hud_draw_track_info(current, w, h);
     } else {
+        hud_background(&marking, w, h, dt);
         hud_draw_idle(w, h);
     }
 
@@ -164,8 +165,8 @@ static void draw_frame(int w, int h, f32 dt)
     hud_draw_notifications(w, h);
 
     DrawTexturePro(
-        *marking, 
-        RECT(0, 0, marking->width, marking->height), 
+        marking, 
+        RECT(0, 0, marking.width, marking.height), 
         RECT(w-8-64, h-16-64, 64, 64),
         VEC2_ZERO, 
         0.f, 
@@ -186,7 +187,7 @@ void lyla_init(void)
     }
 
     Image rori = LoadImageFromMemory(".png", __resources_rori_png, __resources_rori_png_len);
-    marking = resource_add_texture("rori", LoadTextureFromImage(rori));
+    marking = LoadTextureFromImage(rori);
     UnloadImage(rori);
 
     player_init(analyzer);

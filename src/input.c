@@ -26,6 +26,7 @@ enum {
     VK_K_LSHIFT = 0xA0, VK_K_RSHIFT = 0xA1,
     VK_K_LCTRL = 0xA2,  VK_K_RCTRL = 0xA3,
     VK_K_LALT = 0xA4,   VK_K_RALT = 0xA5,
+    VK_K_GRAVE = 0xC0,
 };
 
 bool input_keyboard_active(void)
@@ -51,9 +52,11 @@ static int key_to_vk(int key)
         return VK_K_F1 + (key - KEY_F1);
 
     switch (key) {
+        case KEY_GRAVE:         return VK_K_GRAVE;
+        case KEY_ENTER:         return VK_K_RETURN;
+        case KEY_KP_ENTER:      return VK_K_RETURN;
         case KEY_SPACE:         return VK_K_SPACE;
         case KEY_ESCAPE:        return VK_K_ESCAPE;
-        case KEY_ENTER:         return VK_K_RETURN;
         case KEY_TAB:           return VK_K_TAB;
         case KEY_BACKSPACE:     return VK_K_BACK;
         case KEY_LEFT:          return VK_K_LEFT;
