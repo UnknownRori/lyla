@@ -9,8 +9,6 @@ Music by [Rigel Theatre](https://www.rigeltheatre.com/)
 Lyla is a music player with built in visualization inspired by [tsoding](https://github.com/tsoding/) and since
 the visualization is on start of the stream and not yet open source I'm going to make my very own with my own idea.
 
-for now I'm not fully open source this, but I will keep this repository here:p
-
 ## Requirements
 
 | Component |   Minimum                        | Recommended                                                                      |
@@ -19,7 +17,7 @@ for now I'm not fully open source this, but I will keep this repository here:p
 |    CPU    |   1.0 Ghz                        |   6769.0Thz                                                                      |
 |    RAM    |   512 MB                         |   10000 TB                                                                       |
 |    GPU    |   256 MB                         |   50000.0 TB                                                                     |
-|  Storage  |   10Mb                           |   10TB                                                                           |
+|  Storage  |   80mb                           |   10TB                                                                           |
 |  Graphics | Hardware accelerated OpenGL (3.3)| OpenGL (6969)                                                                    |
 | Sound Card|   Any                            | Sound Card That Makes The Music Sound Like A Live Orchestra Even Though It's Not |
 
