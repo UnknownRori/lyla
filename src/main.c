@@ -1,7 +1,6 @@
-#include <stdio.h>
 #include <raylib.h>
 #include "lyla.h"
-#include "music/playlist.h"
+#include "./assets/lyla.c"
 
 #if defined(_WIN32)
 #   define CP_UTF8 65001
@@ -32,7 +31,7 @@ int main()
     SetTargetFPS(60);
 
     lyla_init();
-    Image img = LoadImage("icon.png");
+    Image img = LoadImageFromMemory(".png", icon_png, icon_png_len);
     SetWindowIcon(img);
 
     while (!WindowShouldClose()) {
