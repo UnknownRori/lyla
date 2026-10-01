@@ -24,6 +24,7 @@ void hud_draw_notifications(int w, int h);
 
 void hud_background_init();
 void hud_background_shutdown();
-void hud_background(Texture bg, int w, int h);
+void hud_background(Texture* thumbptr, int w, int h, f32 dt);
 
 void hud_overlay_pause(int w, int h);
+void hud_overlay_mode_on(int w, int h);

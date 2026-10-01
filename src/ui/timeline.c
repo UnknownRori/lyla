@@ -1,11 +1,13 @@
+#include "platform/wallpaper.h"
 #include "ui.h"
+#include "input.h"
 
 void hud_draw_timeline(int w, int h)
 {
     Rectangle bar = { 0, h - HUD_TIMELINE_HEIGHT, w, HUD_TIMELINE_HEIGHT };
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-        CheckCollisionPointRec(GetMousePosition(), bar)) {
+    if (input_mouse_pressed(MOUSE_BUTTON_LEFT) &&
+        CheckCollisionPointRec(input_mouse_position(), bar) && !IsWallpaperAttached()) {
         player_seek_fraction(GetMousePosition().x/w);
     }
 

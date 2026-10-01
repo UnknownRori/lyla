@@ -9,4 +9,4 @@
 bool visualizer_init(void);
 void visualizer_shutdown(void);
 
-void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, usize m, bool detached);
+void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, usize m, bool detached, f32 dt);

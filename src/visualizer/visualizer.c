@@ -15,10 +15,10 @@ static bool ready = false;
 
 static f32 detach = 0.0f;
 
-static void update_detach(bool detached)
+static void update_detach(bool detached, f32 dt)
 {
     f32 target = detached ? 1.0f : 0.0f;
-    f32 k = 1.0f - expf(-5.0f*GetFrameTime());
+    f32 k = 1.0f - expf(-5.0f*dt);
     detach += (target - detach)*k;
     if (fabsf(target - detach) < 0.001f) detach = target;
 }
@@ -116,12 +116,12 @@ static void step_particles(Rectangle b, usize m, bool detached, f32 dt)
     }
 }
 
-void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, usize m, bool detached)
+void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, usize m, bool detached, f32 dt)
 {
     RORI_ASSERT(smooth != NULL && "dummy dumb dumb");
     RORI_ASSERT(smear != NULL && "dummy dumb dumb");
 
-    update_detach(detached);
+    update_detach(detached, dt);
     if (m > MAX_PARTICLES) m = MAX_PARTICLES;
     if (m == 0) return;
 
@@ -184,7 +184,10 @@ void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, 
     if (!detached && detach == 0.0f) free_flight = false;
 
     if (free_flight) {
-        f32 dt = fminf(GetFrameTime(), 1.0f/20.0f)/2;
+        // TODO : step is delegate at the start
+        // f32 step_dt = fminf(dt, 1.0f/20.0f)/2;
+        // step_particles(boundary, m, detached, step_dt);
+        // step_particles(boundary, m, detached, step_dt);
         step_particles(boundary, m, detached, dt);
         step_particles(boundary, m, detached, dt);
     }

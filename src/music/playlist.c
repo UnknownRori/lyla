@@ -42,17 +42,6 @@ void playlist_clear(Playlist* playlist)
     rstb_da_reset(playlist);
 }
 
-// static void strip_quotes(char* str) 
-// {
-//     int j = 0;
-//     for (int i = 0; str[i] != '\0'; i++) {
-//         if (str[i] != '"') {
-//             str[j++] = str[i];
-//         }
-//     }
-//     str[j] = '\0';
-// }
-
 void playlist_load_ini(Playlist* playlist, const char* filepath)
 {
     char* buffer = LoadFileText(filepath);
@@ -64,56 +53,34 @@ void playlist_load_ini(Playlist* playlist, const char* filepath)
     if (rconfig_parse_buffer(&cfg, buffer)) {
         int index = 1;
         char section[16];
-        char file_val[256];
-        char thumb_val[256];
         
-        char temp[1024];
+        char temp[2024];
         while (true) {
             snprintf(section, sizeof(section), "%d", index);
             
-            if (rconfig_get_properties_cstr(&cfg, section, "file", file_val, sizeof(file_val))) {
-                // strip_quotes(file_val);
-                
-                const char* dir = GetDirectoryPath(filepath);
-                char full_path[1024];
-                if (strlen(dir) > 0) {
-                    snprintf(full_path, sizeof(full_path), "%s/%s", dir, file_val);
-                } else {
-                    snprintf(full_path, sizeof(full_path), "%s", file_val);
-                }
+            if (rconfig_get_properties_cstr(&cfg, section, "file", temp, sizeof(temp))) {
+                char full_path[2024];
+                snprintf(full_path, sizeof(full_path), "%s", temp);
 
                 Track track = {0};
                 if (track_load(&track, full_path)) {
                     
-                    if (rconfig_get_properties_cstr(&cfg, section, "thumbnail", thumb_val, sizeof(thumb_val))) {
-                        // strip_quotes(thumb_val);
-                        
-                        char thumb_path[512];
-                        if (strlen(dir) > 0) {
-                            snprintf(thumb_path, sizeof(thumb_path), "%s/%s", dir, thumb_val);
-                        } else {
-                            snprintf(thumb_path, sizeof(thumb_path), "%s", thumb_val);
-                        }
-                        
-                        track_set_thumbnail(&track, thumb_path);
+                    if (rconfig_get_properties_cstr(&cfg, section, "thumbnail", temp, sizeof(temp))) {
+                        track_set_thumbnail(&track, temp);
                     }
 
                     if (rconfig_get_properties_cstr(&cfg, section, "link", temp, sizeof(temp))) {
-
                         track_set_qrcode(&track, temp);
                     }
                     if (rconfig_get_properties_cstr(&cfg, section, "title", temp, sizeof(temp))) {
-                        // strip_quotes(temp);
                         track.title = strdup(temp);
                     }
 
                     if (rconfig_get_properties_cstr(&cfg, section, "album", temp, sizeof(temp))) {
-                        // strip_quotes(temp);
                         track.album = strdup(temp);
                     }
 
                     if (rconfig_get_properties_cstr(&cfg, section, "artist", temp, sizeof(temp))) {
-                        // strip_quotes(temp);
                         track.artist = strdup(temp);
                     }
 

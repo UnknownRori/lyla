@@ -3,6 +3,7 @@ src_files = files(
   './lyla.c',
   './text.c',
   './input.c',
+  './window_drag.c',
   './visualizer/fft.c',
   './visualizer/visualizer.c',
   './ui/common.c',

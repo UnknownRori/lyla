@@ -28,6 +28,7 @@ void track_unload(Track* track)
 
     #define UNLOAD_STRING(X) do { if (X != NULL) free(X);  } while (0)
 
+    UNLOAD_STRING(track->path);
     UNLOAD_STRING(track->title);
     UNLOAD_STRING(track->artist);
     UNLOAD_STRING(track->album);

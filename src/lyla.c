@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "lyla.h"
 #include "music/randomizer.h"
@@ -13,7 +14,9 @@
 #include "input.h"
 #include "text.h"
 #include "visualizer/visualizer.h"
+#include "platform/wallpaper.h"
 #include "visualizer/fft.h"
+#include "window_drag.h"
 
 static Playlist playlist = {0};
 static FFT_Analyzer* analyzer = NULL;
@@ -22,6 +25,7 @@ static bool shuffle = false;
 static bool show_track_info = true;
 static bool force_track_show = false;
 static bool force_on_top = false;
+static bool force_detach = false;
 static PlaylistRandomizer randomizer;
 
 void play_song()
@@ -59,9 +63,9 @@ static void handle_dropped_files(void)
     UnloadDroppedFiles(files);
 }
 
-static void handle_keyboard(void)
+static void handle_keyboard(f32 dt)
 {
-    if (IsKeyPressed(KEY_F)) {
+    if (input_key_pressed(KEY_F)) {
         ToggleBorderlessWindowed();
         SetWindowState(FLAG_WINDOW_UNDECORATED);
     }
@@ -70,35 +74,34 @@ static void handle_keyboard(void)
         return;
     }
 
-    if (IsKeyPressed(KEY_M)) player_toggle_mute();
-    if (IsKeyPressed(KEY_R)) player_reset_progress(0.0);
-    if (IsKeyPressed(KEY_S)) shuffle = !shuffle;
-    if (IsKeyPressed(KEY_F1)) {
+    if (input_key_pressed(KEY_M)) player_toggle_mute();
+    if (input_key_pressed(KEY_R)) player_reset_progress();
+    if (input_key_pressed(KEY_S)) shuffle = !shuffle;
+    if (input_key_pressed(KEY_D)) force_detach = !force_detach;
+    if (input_key_pressed(KEY_F1)) {
         force_on_top = !force_on_top;
         set_window_ontop(force_on_top);
     }
-    if (IsKeyDown(KEY_UP))   player_change_volume(+0.5f*GetFrameTime());
-    if (IsKeyDown(KEY_DOWN)) player_change_volume(-0.5f*GetFrameTime());
-    if (IsKeyPressed(KEY_T)) {
+    if (input_key_down(KEY_UP))   player_change_volume(+0.5f*dt);
+    if (input_key_down(KEY_DOWN)) player_change_volume(-0.5f*dt);
+    if (input_key_pressed(KEY_T)) {
         show_track_info = !show_track_info;
         force_track_show = true;
     }
-    if (IsKeyPressed(KEY_ENTER)) {
+    if (input_key_pressed(KEY_ENTER)) {
         next_song();
         play_song();
     }
 
     if (player_has_track()) {
-        if (IsKeyPressed(KEY_SPACE)) player_toggle_pause();
-        if (IsKeyPressed(KEY_RIGHT)) player_seek_by(+5);
-        if (IsKeyPressed(KEY_LEFT))  player_seek_by(-5);
+        if (input_key_pressed(KEY_SPACE)) player_toggle_pause();
+        if (input_key_pressed(KEY_RIGHT)) player_seek_by(+5);
+        if (input_key_pressed(KEY_LEFT))  player_seek_by(-5);
     }
 }
 
-static void draw_frame()
+static void draw_frame(int w, int h, f32 dt)
 {
-    int w = GetScreenWidth();
-    int h = GetScreenHeight();
 
     if ((w < 256 || h < 256) && !force_track_show) {
         show_track_info = false;
@@ -106,32 +109,36 @@ static void draw_frame()
         show_track_info = true;
     }
 
-    size_t m = fft_analyzer_analyze(analyzer, GetFrameTime());
 
     BeginDrawing();
     ClearBackground(ColorAlpha(GetColor(HUD_BACKGROUND_COLOR), 0.75f));
 
     if (player_has_track()) {
+        size_t m = fft_analyzer_analyze(analyzer, GetFrameTime());
         Track* current = player_get_track();
 
         if (current->thumbnail != NULL) {
-            hud_background(*current->thumbnail, w, h);
+            hud_background(current->thumbnail, w, h, dt);
         }
 
         bool detach = player_paused();
-        if (player_progress() < 0.050 && player_get_fast_energy() < 0.11) {
+        if (player_progress() < 0.050 && player_get_fast_energy() < 0.1) {
             detach = true;
         } else if (player_progress() > 0.98 && player_get_fast_energy() < 0.15) {
             detach = true;
-        } else if (player_get_fast_energy() < 0.06) {
+        } else if (player_get_fast_energy() < 0.04) {
             detach = true;
         }
-        visualizer_render(hud_visualizer_area(w, h),
-                          fft_analyzer_smooth(analyzer),
-                          fft_analyzer_smear(analyzer),
-                          m,
-                          detach);
-                          
+        detach |= force_detach;
+        visualizer_render(
+            hud_visualizer_area(w, h),
+            fft_analyzer_smooth(analyzer),
+            fft_analyzer_smear(analyzer),
+            m,
+            detach,
+            dt
+        );
+
         hud_draw_timeline(w, h);
         if (show_track_info) hud_draw_track_info(current, w, h);
     } else {
@@ -139,8 +146,11 @@ static void draw_frame()
     }
 
     hud_overlay_pause(w, h);
+    if (IsWallpaperAttached() && input_keyboard_active()) hud_overlay_mode_on(w, h);
     hud_render_playlist(&playlist, w, h);
     hud_draw_notifications(w, h);
+
+    // DrawFPS(0, 0);
 
     EndDrawing();
 }
@@ -169,6 +179,7 @@ void lyla_init(void)
     discord_init(DISCORD_APP_ID);
     playlist_randomizer_init(&randomizer, playlist.count);
     platform_tray_init();
+    window_drag_init();
 }
 
 bool lyla_should_close()
@@ -178,9 +189,15 @@ bool lyla_should_close()
 
 void lyla_update(void) 
 {
+    int w = GetScreenWidth();
+    int h = GetScreenHeight();
+    f32 dt = GetFrameTime();
+    dt = fminf(dt, 1.0f/20.0f)/2;
+
+    window_drag_update(w, h);
     platform_tray_update();
-    input_default_update();
-    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+    input_update();
+    if (input_mouse_pressed(MOUSE_BUTTON_RIGHT)) {
         should_close = true;
     }
     if (player_progress() > 0.995) {
@@ -188,11 +205,11 @@ void lyla_update(void)
         play_song();
     }
     handle_dropped_files();
-    handle_keyboard();
+    handle_keyboard(dt);
     player_update();
     discord_update_presence(player_get_track(), player_paused());
     discord_update();
-    draw_frame();
+    draw_frame(w, h, dt);
 }
 void lyla_shutdown(void) 
 {

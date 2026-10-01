@@ -1,5 +1,6 @@
 #include "music/playlist.h"
 #include <stdio.h>
+#include "input.h"
 #include <stdlib.h>
 
 #include "ui.h"
@@ -104,7 +105,7 @@ static size_t playlist_selected_index = 0;
 
 bool hud_update_playlist(Playlist* playlist, void (*play_next_song)(void))
 {
-    if (IsKeyPressed(KEY_TAB)) {
+    if (input_key_pressed(KEY_TAB)) {
         show_playlist = !show_playlist;
         if (show_playlist) {
             playlist_selected_index = playlist->current;
@@ -112,18 +113,18 @@ bool hud_update_playlist(Playlist* playlist, void (*play_next_song)(void))
     }
 
     if (show_playlist) {
-        if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_J)) {
+        if (input_key_pressed(KEY_DOWN) || input_key_pressed(KEY_J)) {
             if (playlist->count > 0) playlist_selected_index = (playlist_selected_index + 1) % playlist->count;
         }
-        if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_K)) {
+        if (input_key_pressed(KEY_UP) || input_key_pressed(KEY_K)) {
             if (playlist->count > 0) playlist_selected_index = (playlist_selected_index + playlist->count - 1) % playlist->count;
         }
-        if (IsKeyPressed(KEY_ENTER)) {
+        if (input_key_pressed(KEY_ENTER)) {
             playlist_set(playlist, playlist_selected_index);
             play_next_song();
             show_playlist = false;
         }
-        if (IsKeyPressed(KEY_ESCAPE)) {
+        if (input_key_pressed(KEY_ESCAPE)) {
             show_playlist = false;
         }
 
