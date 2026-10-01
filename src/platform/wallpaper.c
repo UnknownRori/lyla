@@ -1,9 +1,5 @@
 // Thank you claude for making broken sit
 #if defined(_WIN32)
-#else
-#error "Dummy dumb dumb, not supported yet"
-#endif
-
 #include <windows.h>
 #include "wallpaper.h"
 
@@ -84,3 +80,23 @@ void DetachWallpaper(void)
 }
 
 int IsWallpaperAttached(void) { return g_attached; }
+
+void WallpaperMouse(int* x, int* y, int* leftDown)
+{
+    POINT pt;
+    GetCursorPos(&pt);
+    HWND hwnd = (HWND)GetWindowHandle();
+    if (hwnd) ScreenToClient(hwnd, &pt);
+    if (x) *x = pt.x;
+    if (y) *y = pt.y;
+    if (leftDown) *leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+}
+
+int WallpaperKeyDown(int vk)
+{
+    return (GetAsyncKeyState(vk) & 0x8000) != 0;
+}
+#else
+#error "Dummy dumb dumb, not supported yet"
+#endif
+
