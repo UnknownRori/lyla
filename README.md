@@ -25,6 +25,23 @@ for now I'm not fully open source this, but I will keep this repository here:p
 
 *The requirement might change over the course of development
 
+## Keybinds
+
+| Key   | Behavior                      |
+|-------|-------------------------------|
+| `     | open playlist                 |
+| enter | confirm selection / next song |
+| s     | shuffle mode                  |
+| t     | toggle track info             |
+| space | play/pause                    |
+| r     | reset progress                |
+| f     | fullscreen                    |
+| c     | clear playlist                |
+| d     | force detach the (yo) ball    |
+
+There are two mode in windows, a wallpaper mode and normal mode, in wallpaper mode all the control is disabled until you press
+specific key to activate it.
+
 ## Build
 
 There is no easy way to build since I use custom Raylib dependency, and maybe more custom thing
