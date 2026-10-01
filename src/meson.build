@@ -37,7 +37,10 @@ if host_machine.system() == 'windows' and (get_option('buildtype') == 'release' 
   exe_args += {'win_subsystem': 'windows'}
 endif
 
-dependencies = [raylib_dep, rconfig_dep, discord_dep, taglib_dep]
+cc = meson.get_compiler('c')
+m_dep = cc.find_library('m', required: false)
+
+dependencies = [m_dep, raylib_dep, rconfig_dep, discord_dep, taglib_dep]
 
 executable(
   meson.project_name(),
