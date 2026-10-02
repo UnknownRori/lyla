@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/taglib/taglib/
+revision = master
+depth = 1
+clone-recursive = true
+method = cmake

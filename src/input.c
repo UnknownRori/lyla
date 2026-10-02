@@ -10,7 +10,7 @@ typedef struct {
     bool    key[KEY_COUNT];
 } InputState;
 
-#define KEYBOARD_TOGGLE_KEY KEY_F12
+#define KEYBOARD_TOGGLE_KEY KEY_F2
 
 static InputState s_cur, s_prev;
 static bool       s_was_attached = false;

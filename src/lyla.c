@@ -224,10 +224,10 @@ void lyla_update(void)
     window_drag_update(w, h);
     platform_tray_update();
     input_update();
-    if (input_mouse_pressed(MOUSE_BUTTON_RIGHT)) {
+    if (input_mouse_pressed(MOUSE_BUTTON_RIGHT) && !IsWallpaperAttached()) {
         should_close = true;
     }
-    if (player_progress() > 0.995) {
+    if (player_progress() > 0.998) {
         next_song();
         play_song();
     }

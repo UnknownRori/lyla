@@ -21,6 +21,12 @@ discord = cmake.subproject('discord', options: discord_opt)
 discord_dep = discord.dependency('discord-rpc')
 
 taglib_opt = cmake.subproject_options()
+taglib_opt.add_cmake_defines({
+  'BUILD_SHARED_LIBS': false,
+  'BUILD_TESTING':     false,
+  'BUILD_EXAMPLES':    false,
+  'WITH_ZLIB':         false,
+})
 taglib = cmake.subproject('taglib', options: taglib_opt)
 taglib_dep = taglib.dependency('tag_c')
 
