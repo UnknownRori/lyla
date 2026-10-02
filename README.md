@@ -25,20 +25,22 @@ the visualization is on start of the stream and not yet open source I'm going to
 
 ## Keybinds
 
-| Key   | Behavior                      |
-|-------|-------------------------------|
-| `     | open playlist                 |
-| enter | confirm selection / next song |
-| s     | shuffle mode                  |
-| t     | toggle track info             |
-| space | play/pause                    |
-| r     | reset progress                |
-| f     | fullscreen                    |
-| c     | clear playlist                |
-| d     | force detach the (yo) ball    |
+| Key   | Behavior                            |
+|-------|-------------------------------------|
+| `     | open playlist                       |
+| enter | confirm selection / next song       |
+| s     | shuffle mode                        |
+| t     | toggle track info                   |
+| space | play/pause                          |
+| r     | reset progress                      |
+| f     | fullscreen                          |
+| c     | clear playlist                      |
+| d     | force detach the (yo) ball          |
+| f1    | toggle background thumbnail panning |
+| f2    | toggle input (wallpaper mode)       |
 
 There are two mode in windows, a wallpaper mode and normal mode, in wallpaper mode all the control is disabled until you press
-specific key to activate it.
+specific key to activate it, the wallpaper mode only available on windows for now.
 
 ## Build
 
