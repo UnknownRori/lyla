@@ -1,3 +1,4 @@
+#include "raylib.h"
 #ifndef  NO_DISCORD
 #include "discord.h"
 #include "music/player.h"
@@ -8,7 +9,6 @@
 #include <time.h>
 
 static const char* last_path = NULL;
-static Track* last_track = NULL;
 static bool last_paused = false;
 static bool force_update = true;
 
@@ -56,7 +56,7 @@ void discord_update_presence(Track* track, bool paused)
 
     static char state_buffer[256];
     if (track) {
-        discordPresence.details = track->title ? track->title : track->path; 
+        discordPresence.details = track->title ? track->title : GetFileNameWithoutExt(track->path); 
 
         if (track->artist) {
             snprintf(state_buffer, sizeof(state_buffer), "by %s%s", 
