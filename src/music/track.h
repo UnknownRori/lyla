@@ -8,6 +8,8 @@ typedef struct Track {
     char* artist;
     char* album;
     char* link;
+    char* thumbnail_path;
+    char* qrcode_link;
     Texture2D* thumbnail;
     Texture2D* qrcode;
     Music music;

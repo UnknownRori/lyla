@@ -8,9 +8,20 @@
 #include "common.h"
 #include "utils.h"
 
-static void hud_draw_backdrop(int w, int h)
+#define PLAYLIST_ANCHOR_X 0.5f
+#define PLAYLIST_ANCHOR_Y 0.5f
+#define PLAYLIST_WIDTH_RATIO 0.65f
+#define PLAYLIST_HEIGHT_RATIO 0.65f
+#define PLAYLIST_OFFSET_X 0.0f
+#define PLAYLIST_OFFSET_Y 0.0f
+#define PLAYLIST_SLIDE_SPEED 6.0f
+#define PLAYLIST_BACKDROP_ALPHA 210.0f
+
+static float playlist_slide = 0.0f;
+
+static void hud_draw_backdrop(int w, int h, float progress)
 {
-    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, 210});
+    DrawRectangle(0, 0, w, h, (Color){0, 0, 0, (unsigned char)(PLAYLIST_BACKDROP_ALPHA * progress)});
 }
 
 static void hud_draw_modal_window(float box_x, float box_y, float box_w, float box_h)
@@ -61,7 +72,7 @@ static void hud_draw_playlist_scrollbar(Playlist* playlist, float box_x, float b
     DrawRectangleRounded((Rectangle){sb_x, sb_y, sb_w, sb_h}, 1.0f, 4, (Color){40, 40, 40, 255});
 
     float thumb_h = sb_h * ((float)max_visible / playlist->count);
-    if (thumb_h < 24.0f) thumb_h = 24.0f; // Minimum thumb height limit
+    if (thumb_h < 24.0f) thumb_h = 24.0f;
 
     float scroll_progress = (float)start_idx / (playlist->count - max_visible);
     float thumb_y = sb_y + scroll_progress * (sb_h - thumb_h);
@@ -69,16 +80,20 @@ static void hud_draw_playlist_scrollbar(Playlist* playlist, float box_x, float b
     DrawRectangleRounded((Rectangle){sb_x, thumb_y, sb_w, thumb_h}, 1.0f, 4, (Color){120, 120, 140, 255});
 }
 
-static void hud_draw_playlist(Playlist* playlist, size_t selected_index, int w, int h)
+static void hud_draw_playlist(Playlist* playlist, size_t selected_index, int w, int h, float progress)
 {
     if (!playlist || playlist->count == 0) return;
 
-    hud_draw_backdrop(w, h);
+    hud_draw_backdrop(w, h, progress);
 
-    float box_w = w * 0.65f;
-    float box_h = h * 0.65f;
-    float box_x = (w - box_w) / 2.0f;
-    float box_y = (h - box_h) / 2.0f;
+    float box_w = w * PLAYLIST_WIDTH_RATIO;
+    float box_h = h * PLAYLIST_HEIGHT_RATIO;
+    float box_x = (w - box_w) * PLAYLIST_ANCHOR_X + PLAYLIST_OFFSET_X;
+    float target_y = (h - box_h) * PLAYLIST_ANCHOR_Y + PLAYLIST_OFFSET_Y;
+
+    float inv = 1.0f - progress;
+    float eased = 1.0f - inv * inv * inv;
+    float box_y = h + (target_y - h) * eased;
 
     hud_draw_modal_window(box_x, box_y, box_w, box_h);
     hud_draw_playlist_header(box_x, box_y);
@@ -143,8 +158,18 @@ bool hud_update_playlist(Playlist* playlist, void (*play_next_song)(void))
 
 void hud_render_playlist(Playlist* playlist, int w, int h)
 {
-    if (show_playlist) {
-        hud_draw_playlist(playlist, playlist_selected_index, w, h);
+    float target = show_playlist ? 1.0f : 0.0f;
+    float step = PLAYLIST_SLIDE_SPEED * GetFrameTime();
+
+    if (playlist_slide < target) {
+        playlist_slide += step;
+        if (playlist_slide > target) playlist_slide = target;
+    } else if (playlist_slide > target) {
+        playlist_slide -= step;
+        if (playlist_slide < target) playlist_slide = target;
+    }
+
+    if (playlist_slide > 0.0f) {
+        hud_draw_playlist(playlist, playlist_selected_index, w, h, playlist_slide);
     }
 }
-

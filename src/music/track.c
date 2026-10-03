@@ -14,7 +14,7 @@ bool track_load(Track* track, const char* path)
     track->music = LoadMusicStream(path);
     if (!IsMusicValid(track->music)) return false;
 
-    track->path = strdup(GetFileName(path));
+    track->path = strdup(path);
     track->thumbnail = NULL;
     return true;
 }
@@ -32,6 +32,8 @@ void track_unload(Track* track)
     UNLOAD_STRING(track->title);
     UNLOAD_STRING(track->artist);
     UNLOAD_STRING(track->album);
+    UNLOAD_STRING(track->qrcode_link);
+    UNLOAD_STRING(track->thumbnail_path);
 }
 
 bool track_set_thumbnail(Track* track, const char* path)

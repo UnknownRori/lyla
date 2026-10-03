@@ -19,3 +19,4 @@ void playlist_get_current(Playlist* playlist, Track* track);
 void playlist_clear(Playlist* playlist);
 
 void playlist_load_ini(Playlist* playlist, const char* filepath);
+bool playlist_save_ini(Playlist* playlist, const char* filepath);

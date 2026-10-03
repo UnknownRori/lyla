@@ -34,15 +34,6 @@ static bool force_detach = false;
 static PlaylistRandomizer randomizer;
 static Texture marking = {0};
 
-void play_song()
-{
-    if (playlist.count <= 0) return;
-    Track track = {0};
-    playlist_get_current(&playlist, &track);
-    player_play_track(track);
-    text_prepare(TextFormat("%s %s %s", player_name(), player_artist(),  player_album()));
-}
-
 void next_song()
 {
     if (shuffle) {
@@ -53,6 +44,20 @@ void next_song()
     playlist_next(&playlist);
 }
 
+
+void play_song()
+{
+    if (playlist.count <= 0) return;
+    Track track = {0};
+    playlist_get_current(&playlist, &track);
+    if (!player_play_track(track)) {
+        next_song();
+        play_song();
+        return;
+    }
+    text_prepare(TextFormat("%s %s %s", player_name(), player_artist(),  player_album()));
+}
+
 static void handle_dropped_files(void)
 {
     if (!IsFileDropped()) return;
@@ -61,7 +66,7 @@ static void handle_dropped_files(void)
     for (unsigned int i = 0; i < files.count; ++i) {
         Track track = {0};
         if (track_load(&track, files.paths[i])) {
-            tag_meta_load(&track, files.paths[i]);
+            tag_meta_load(&track, files.paths[i], TAG_META_ALL);
             playlist_append(&playlist, track);
         }
     }
@@ -106,6 +111,14 @@ static void handle_keyboard(f32 dt)
         play_song();
     }
 
+    if (IsKeyPressed(KEY_S) && IsKeyDown(KEY_LEFT_CONTROL)) {
+        TraceLog(LOG_INFO, "saving");
+        if (!playlist_save_ini(&playlist, "playlists.ini")) {
+            // TODO : Send error notification
+            TraceLog(LOG_INFO, "saving failed");
+        }
+    }
+
     if (player_has_track()) {
         if (input_key_pressed(KEY_SPACE)) player_toggle_pause();
         if (input_key_pressed(KEY_RIGHT)) player_seek_by(+5);
@@ -135,11 +148,11 @@ static void draw_frame(int w, int h, f32 dt)
         }
 
         bool detach = player_paused();
-        if (player_progress() < 0.050 && player_get_fast_energy() < 0.1) {
+        if (player_progress() < 0.050 && player_get_fast_energy() < 0.095) {
             detach = true;
-        } else if (player_progress() > 0.98 && player_get_fast_energy() < 0.15) {
+        } else if (player_progress() > 0.98 && player_get_fast_energy() < 0.13) {
             detach = true;
-        } else if (player_get_fast_energy() < 0.04) {
+        } else if (player_get_fast_energy() < 0.03) {
             detach = true;
         }
         detach |= force_detach;

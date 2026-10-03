@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "tag.h"
 #include <tag_c.h>
+#include "utils.h"
 #include "resources.h"
 
 typedef struct {
@@ -75,22 +76,47 @@ static Texture2D cover_to_texture(const CoverArt *art, int max_dim) {
     return tex;
 }
 
-void tag_meta_load(Track* track, const char* path)
+static void tag_set_string(char** dst, const char* src)
 {
-    TagLib_File* f = taglib_file_new(path);
-    if (!f || !taglib_file_is_valid(f)) { if (f) taglib_file_free(f); return; }
-    TagLib_Tag *t = taglib_file_tag(f);
-    #define SET_WHEN_NEEDED(X, Y) do { if (strcmp(Y(t), "") != 0) track->X = strdup(Y(t)); } while (0)
-    SET_WHEN_NEEDED(title, taglib_tag_title);
-    SET_WHEN_NEEDED(artist, taglib_tag_artist);
-    SET_WHEN_NEEDED(album, taglib_tag_album);
+    if (!src || !*src) return;
+    free(*dst);
+    *dst = strdup(src);
+}
 
-    CoverArt tmp = {0};
-    if (taglib_load_cover(f, &tmp)) {
-        Texture2D cover = cover_to_texture(&tmp, 256);
-        track->thumbnail = resource_add_texture(path, cover);
+static void tag_load_text(Track* track, TagLib_File* f, unsigned flags)
+{
+    TagLib_Tag* t = taglib_file_tag(f);
+    if (!t) return;
+
+    if (HAS(flags, TAG_META_TITLE))  tag_set_string(&track->title,  taglib_tag_title(t));
+    if (HAS(flags, TAG_META_ARTIST)) tag_set_string(&track->artist, taglib_tag_artist(t));
+    if (HAS(flags, TAG_META_ALBUM))  tag_set_string(&track->album,  taglib_tag_album(t));
+}
+
+static void tag_load_cover(Track* track, TagLib_File* f, const char* path)
+{
+    CoverArt art = {0};
+    if (taglib_load_cover(f, &art)) {
+        Texture2D cover = cover_to_texture(&art, 256);
+        if (cover.id != 0) {
+            track->thumbnail = resource_add_texture(path, cover);
+        }
+    }
+    free(art.data);
+}
+
+void tag_meta_load(Track* track, const char* path, unsigned flags)
+{
+    if (!flags) return;
+
+    TagLib_File* f = taglib_file_new(path);
+    if (!f) return;
+
+    if (taglib_file_is_valid(f)) {
+        if (flags & TAG_META_TEXT)  tag_load_text(track, f, flags);
+        if (HAS(flags, TAG_META_COVER)) tag_load_cover(track, f, path);
     }
 
-    taglib_tag_free_strings();
+    if (flags & TAG_META_TEXT) taglib_tag_free_strings();
     taglib_file_free(f);
 }
