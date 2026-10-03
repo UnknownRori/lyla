@@ -24,5 +24,6 @@ void set_window_ontop(bool enable)
     );
 }
 #else
+#include <stdbool.h>
 void set_window_ontop(bool enable) {}
 #endif

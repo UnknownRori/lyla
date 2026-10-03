@@ -1,3 +1,4 @@
+#if defined(_WIN32)
 #include <stdio.h>
 #include "platform/wallpaper.h"
 #include "types.h"
@@ -48,3 +49,14 @@ bool platform_tray_exit_signal()
 {
     return exit_signal;
 }
+#else
+
+#include <stdbool.h>
+
+// TODO : Thinking if it actually useful to have system tray in this app
+void platform_tray_init() {}
+void platform_tray_update() {}
+void platform_tray_shutdown() {}
+bool platform_tray_exit_signal() { return false; }
+#endif
+

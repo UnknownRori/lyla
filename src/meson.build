@@ -32,21 +32,43 @@ if host_machine.system() == 'windows'
 endif
 
 exe_args = {}
+link_args = []
+c_args = []
 
-if host_machine.system() == 'windows' and (get_option('buildtype') == 'release' or get_option('WINDOW_NO_CONSOLE'))
-  exe_args += {'win_subsystem': 'windows'}
+if host_machine.system() == 'windows'  
+  link_args += '-static'
+  if get_option('buildtype') == 'release' or get_option('WINDOW_NO_CONSOLE')
+    exe_args += {'win_subsystem': 'windows'}
+  endif
 endif
 
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required: false)
 
-dependencies = [m_dep, raylib_dep, rconfig_dep, discord_dep, taglib_dep]
+dependencies = [m_dep, raylib_dep, rconfig_dep, taglib_dep]
+if not get_option('NO_DISCORD')
+  c_args += 'NO_DISCORD'
+  dependencies += discord_dep
+endif
+
+
+if host_machine.system() == 'linux'
+  dependencies += [
+    dependency('x11'),
+    dependency('xext'),
+    dependency('xrandr'),
+    dependency('xcursor'),
+    dependency('xfixes'),
+    dependency('threads'),
+  ]
+endif
 
 executable(
   meson.project_name(),
   src_files,
-  include_directories: [rstb_inc],
+  include_directories: [rstb_inc, taglib_c_inc],
   dependencies: dependencies,
-  link_args: ['-static'],
+  link_args: link_args,
+  c_args: c_args,
   kwargs: exe_args,
 )

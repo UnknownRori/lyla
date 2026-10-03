@@ -97,6 +97,10 @@ int WallpaperKeyDown(int vk)
     return (GetAsyncKeyState(vk) & 0x8000) != 0;
 }
 #else
-#error "Dummy dumb dumb, not supported yet"
+void AttachAsWallpaper(void) {}
+void DetachWallpaper(void) {}
+int IsWallpaperAttached(void) { return 0; }
+void WallpaperMouse(int* x, int* y, int* leftDown) {}
+int WallpaperKeyDown(int vk) { return 0; }
 #endif
 

@@ -1,3 +1,4 @@
+#if defined(NO_DISCORD)
 #include "discord.h"
 #include "music/player.h"
 
@@ -91,3 +92,13 @@ void discord_shutdown(void)
 {
     Discord_Shutdown();
 }
+#else
+#include "discord.h"
+void discord_init(const char* client_id) {}
+
+void discord_update_presence(Track* track, bool paused) {}
+
+void discord_update(void) {}
+
+void discord_shutdown(void) {}
+#endif

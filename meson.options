@@ -1,1 +1,2 @@
 option('WINDOW_NO_CONSOLE', type: 'boolean', value: true, description: 'Remove window console')
+option('NO_DISCORD', type: 'boolean', value: true, description: 'Remove discord presence')

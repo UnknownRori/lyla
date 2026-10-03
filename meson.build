@@ -1,6 +1,7 @@
 project('lyla', 'c', default_options: [
     'c_std=c99'
 ])
+add_project_arguments('-D_GNU_SOURCE', language: 'c')
 
 rstb_inc = include_directories('./external/rstb')
 
@@ -16,9 +17,15 @@ rconfig_dep = rconfig_proj.get_variable('rconfig_dep')
 
 cmake   = import('cmake')
 
-discord_opt = cmake.subproject_options()
-discord = cmake.subproject('discord', options: discord_opt)
-discord_dep = discord.dependency('discord-rpc')
+if not get_option('NO_DISCORD')
+  discord_opt = cmake.subproject_options()
+  discord_opt.add_cmake_defines({
+    'CMAKE_CXX_FLAGS': '-fpermissive -Wno-class-memaccess -Wno-error=template-body'
+  })
+
+  discord = cmake.subproject('discord', options: discord_opt)
+  discord_dep = discord.dependency('discord-rpc')
+endif
 
 taglib_opt = cmake.subproject_options()
 taglib_opt.add_cmake_defines({
@@ -29,5 +36,6 @@ taglib_opt.add_cmake_defines({
 })
 taglib = cmake.subproject('taglib', options: taglib_opt)
 taglib_dep = taglib.dependency('tag_c')
+taglib_c_inc = include_directories('./subprojects/taglib/bindings/c')
 
 subdir('src')

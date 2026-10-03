@@ -1,8 +1,7 @@
 #include <string.h>
-#include <taglib/tag_c.h>
 #include <stdlib.h>
 #include "tag.h"
-#include "bindings/c/tag_c.h"
+#include <tag_c.h>
 #include "resources.h"
 
 typedef struct {
