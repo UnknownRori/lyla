@@ -46,8 +46,9 @@ cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required: false)
 
 dependencies = [m_dep, raylib_dep, rconfig_dep, taglib_dep]
-if not get_option('NO_DISCORD')
-  c_args += 'NO_DISCORD'
+if get_option('NO_DISCORD')
+  c_args += '-DNO_DISCORD'
+else
   dependencies += discord_dep
 endif
 

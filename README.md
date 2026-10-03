@@ -40,12 +40,16 @@ the visualization is on start of the stream and not yet open source I'm going to
 | f2    | toggle input (wallpaper mode)       |
 
 There are two mode in windows, a wallpaper mode and normal mode, in wallpaper mode all the control is disabled until you press
-specific key to activate it, the wallpaper mode only available on windows for now.
+specific key to activate it, the wallpaper mode only available on windows for now in system tray.
 
 ## Build
 
+Requirement: meson.build, cmake, ninja, make
+
 There is no easy way to build since I use custom Raylib dependency, and maybe more custom thing
 that I made it private due to my life circumstance (feel free to deduce why).
+
+For now you can use your classic Raylib source with meson.build that has meson.options in there
 
 ## Contributions
 

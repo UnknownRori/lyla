@@ -19,9 +19,9 @@ cmake   = import('cmake')
 
 if not get_option('NO_DISCORD')
   discord_opt = cmake.subproject_options()
-  discord_opt.add_cmake_defines({
-    'CMAKE_CXX_FLAGS': '-fpermissive -Wno-class-memaccess -Wno-error=template-body'
-  })
+  # discord_opt.add_cmake_defines({
+  #   'CMAKE_CXX_FLAGS': '-fpermissive -Wno-class-memaccess -Wno-error=template-body'
+  # })
 
   discord = cmake.subproject('discord', options: discord_opt)
   discord_dep = discord.dependency('discord-rpc')
