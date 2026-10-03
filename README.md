@@ -37,7 +37,7 @@ the visualization is on start of the stream and not yet open source I'm going to
 | c     | clear playlist                      |
 | d     | force detach the (yo) ball          |
 | f1    | toggle background thumbnail panning |
-| f2    | toggle input (wallpaper mode)       |
+| f3    | toggle input (wallpaper mode)       |
 
 There are two mode in windows, a wallpaper mode and normal mode, in wallpaper mode all the control is disabled until you press
 specific key to activate it, the wallpaper mode only available on windows for now in system tray.
