@@ -16,6 +16,8 @@
 #define PAN_FOLLOW_SPEED   2.0f
 #define SHAKE_AMOUNT 0.02f
 #define SHAKE_SPEED  0.4f
+#define FADE_IN_TIME  2.0f
+#define FADE_OUT_TIME 2.0f
 
 static RenderTexture2D pass1;
 static RenderTexture2D cache;
@@ -59,7 +61,7 @@ void hud_background_shutdown()
     UnloadShader(blurShader);
 }
 
-void hud_background(Texture* thumbptr, int w, int h, f32 dt)
+void hud_background(Texture* thumbptr, int w, int h, f32 dt, f32 music_elapsed, f32 music_duration)
 {
     if (thumbptr != old_thumb) {
         old_thumb = thumbptr;
@@ -192,13 +194,24 @@ void hud_background(Texture* thumbptr, int w, int h, f32 dt)
     top  = Clamp(top,  0.0f, (float)ch - win_h);
     float mem_top = ch - (top + win_h);
 
+    float fade = 1.0f;
+    float in_t  = Clamp(FADE_IN_TIME,  0.0f, music_duration * 0.5f);
+    float out_t = Clamp(FADE_OUT_TIME, 0.0f, music_duration * 0.5f);
+    if (in_t > 0.0f && music_elapsed < in_t) {
+        fade = music_elapsed / in_t;
+    } else if (out_t > 0.0f && music_elapsed > music_duration - out_t) {
+        fade = (music_duration - music_elapsed) / out_t;
+    }
+    fade = Clamp(fade, 0.0f, 1.0f);
+    fade = fade * fade * (3.0f - 2.0f * fade);
+
     DrawTexturePro(
         cache.texture,
         (Rectangle){ left, mem_top, win_w, -win_h },
         (Rectangle){ 0, 0, (float)w, (float)h },
         (Vector2){0, 0},
         0.0f,
-        ColorAlpha(WHITE, 0.3f)
+        ColorAlpha(WHITE, 0.3f * fade)
     );
     DrawRectangle(
         0, 0, w, h,

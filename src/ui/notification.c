@@ -8,7 +8,6 @@ static double error_until = 0;
 void hud_draw_idle(int w, int h)
 {
     const char *label = "Drag & Drop a music file";
-    text_prepare(label);
     float size = 40;
     text_draw(label, w/2 - text_width(label, size)/2, h/2 - size/2, size, WHITE);
 }

@@ -33,6 +33,66 @@ static bool force_on_top = false;
 static bool force_detach = false;
 static PlaylistRandomizer randomizer;
 static Texture marking = {0};
+static bool radial = false;
+static bool idle_first = true;
+
+#ifdef WITH_MICROPHONE
+#define MIC_RATE 44100
+#define MIC_CHANNELS 2
+#define MIC_GAIN 4.0f
+#define MIC_QUIET_THRESHOLD 0.01f
+
+static FFT_Analyzer* mic_analyzer = NULL;
+static AudioStream mic_stream = {0};
+static bool mic_enabled = false;
+
+static void mic_callback(void *buffer, unsigned int frames)
+{
+    f32 (*fs)[2] = buffer;
+    ReadMicrophone((float *)buffer, frames);
+    if (frames == 0) return;
+
+    for (unsigned int i = 0; i < frames; ++i) {
+        f32 sample = 0.5f*(fs[i][0] + fs[i][1])*MIC_GAIN;
+        fft_analyzer_push(mic_analyzer, sample);
+    }
+}
+
+static void mic_init(void)
+{
+    mic_analyzer = fft_analyzer_create();
+    if (mic_analyzer == NULL) {
+        TraceLog(LOG_ERROR, "Failed to allocate mic FFT Analyzer");
+        return;
+    }
+    InitMicrophoneDevice(MIC_RATE, MIC_CHANNELS);
+    mic_stream = LoadAudioStream(MIC_RATE, 32, MIC_CHANNELS);
+    SetAudioStreamCallback(mic_stream, mic_callback);
+    SetAudioStreamVolume(mic_stream, 0.0f);
+    PlayAudioStream(mic_stream);
+}
+
+static void mic_shutdown(void)
+{
+    if (mic_analyzer == NULL) return;
+    UnloadAudioStream(mic_stream);
+    CloseMicrophoneDevice();
+    fft_analyzer_destroy(mic_analyzer);
+    mic_analyzer = NULL;
+}
+
+static void draw_mic_visualizer(int w, int h, f32 dt)
+{
+    size_t m = fft_analyzer_analyze(mic_analyzer, dt);
+    bool detach = force_detach;
+    f32 beat = fft_analyzer_beat(mic_analyzer);
+
+    visualizer_render(hud_visualizer_area(w, h),
+        fft_analyzer_smooth(mic_analyzer), fft_analyzer_smear(mic_analyzer),
+        m, detach, beat, dt);
+    visualizer_draw_corner_glow(beat, w, h);
+}
+#endif
 
 void next_song()
 {
@@ -83,6 +143,12 @@ static void handle_keyboard(f32 dt)
         SetWindowState(FLAG_WINDOW_UNDECORATED);
     }
 
+#ifdef WITH_MICROPHONE
+    if (input_key_pressed(KEY_M) && input_key_down(KEY_LEFT_CONTROL)) {
+        mic_enabled = !mic_enabled;
+    }
+#endif
+
     if (hud_update_playlist(&playlist, play_song)) {
         return;
     }
@@ -90,12 +156,14 @@ static void handle_keyboard(f32 dt)
     if (input_key_pressed(KEY_M)) player_toggle_mute();
     if (input_key_pressed(KEY_R)) player_reset_progress();
     if (input_key_pressed(KEY_C)) {
-        playlist.count = 0; // TODO : De-allocate cached resource
+        playlist.count = 0;
+        idle_first = true;
         resource_reset();
         player_shutdown();
     }
     if (input_key_pressed(KEY_S)) shuffle = !shuffle;
     if (input_key_pressed(KEY_D)) force_detach = !force_detach;
+    if (input_key_pressed(KEY_F2)) radial = !radial;
     if (input_key_pressed(KEY_F1)) {
         force_on_top = !force_on_top;
         set_window_ontop(force_on_top);
@@ -114,7 +182,6 @@ static void handle_keyboard(f32 dt)
     if (IsKeyPressed(KEY_S) && IsKeyDown(KEY_LEFT_CONTROL)) {
         TraceLog(LOG_INFO, "saving");
         if (!playlist_save_ini(&playlist, "playlists.ini")) {
-            // TODO : Send error notification
             TraceLog(LOG_INFO, "saving failed");
         }
     }
@@ -140,45 +207,58 @@ static void draw_frame(int w, int h, f32 dt)
     ClearBackground(ColorAlpha(GetColor(HUD_BACKGROUND_COLOR), 0.75f));
 
     if (player_has_track()) {
-        size_t m = fft_analyzer_analyze(analyzer, GetFrameTime());
         Track* current = player_get_track();
-
-        if (current->thumbnail != NULL) {
-            hud_background(current->thumbnail, w, h, dt);
-        }
-
-
-        bool detach = player_paused();
-        static f32 quiet_time = 0.0f;
-
         f32 fe = player_get_fast_energy(), se = player_get_slow_energy();
         f32 t = player_time();
+        f32 du = player_length();
         f32 prog = player_progress();
 
-        bool quiet;
-        if (t < 15.0f || prog < 0.05f) {
-            quiet = fe < 0.095f;
-        } else if (se < 0.005f) {
-            quiet = fe < 0.01f;
-        } else if (prog > 0.98f) {
-            quiet = fe < se*0.7f;
-        } else {
-            quiet = fe < se*0.15f;
+
+        if (current->thumbnail != NULL) {
+            hud_background(current->thumbnail, w, h, dt, t, du);
         }
 
-        quiet_time = quiet ? quiet_time + dt : 0.0f;
-        detach = quiet_time > 0.4f;
-        detach |= force_detach;
-        f32 beat = fft_analyzer_beat(analyzer);
-        visualizer_render(hud_visualizer_area(w, h),
-            fft_analyzer_smooth(analyzer), fft_analyzer_smear(analyzer),
-            m, detach, beat, dt);
+#ifdef WITH_MICROPHONE
+        if (mic_analyzer != NULL && mic_enabled && player_paused()) draw_mic_visualizer(w, h, dt);
+        else
+#endif
+        {
+            size_t m = fft_analyzer_analyze(analyzer, dt);
+            static f32 quiet_time = 0.0f;
 
-        hud_draw_timeline(w, h);
-        if (show_track_info) hud_draw_track_info(current, w, h, player_time(), player_length());
-        visualizer_draw_corner_glow(beat, w, h);
+            bool quiet;
+            if (t < 15.0f || prog < 0.05f) {
+                quiet = fe < 0.095f;
+            } else if (se < 0.005f) {
+                quiet = fe < 0.01f;
+            } else if (prog > 0.98f) {
+                quiet = fe < se*0.7f;
+            } else {
+                quiet = fe < se*0.15f;
+            }
+
+            quiet_time = quiet ? quiet_time + dt : 0.0f;
+            bool detach = quiet_time > 0.4f;
+            detach |= force_detach;
+            detach |= player_paused();
+            f32 beat = fft_analyzer_beat(analyzer);
+            visualizer_render(hud_visualizer_area(w, h),
+                fft_analyzer_smooth(analyzer), fft_analyzer_smear(analyzer),
+                m, detach, beat, dt);
+            visualizer_draw_corner_glow(beat, w, h);
+
+            hud_draw_timeline(w, h);
+            if (show_track_info) hud_draw_track_info(current, w, h, t, du);
+        }
     } else {
-        hud_background(&marking, w, h, dt);
+        if (idle_first) {
+            text_prepare("Drag & Drop a music file");
+            idle_first = false;
+        }
+        hud_background(&marking, w, h, dt, 100., 200.); //:p
+#ifdef WITH_MICROPHONE
+        if (mic_analyzer != NULL && mic_enabled) draw_mic_visualizer(w, h, dt);
+#endif
         hud_draw_idle(w, h);
     }
 
@@ -196,8 +276,6 @@ static void draw_frame(int w, int h, f32 dt)
         WHITE
     );
 
-    // DrawFPS(0, 0);
-
     EndDrawing();
 }
 
@@ -214,6 +292,9 @@ void lyla_init(void)
     UnloadImage(rori);
 
     player_init(analyzer);
+#ifdef WITH_MICROPHONE
+    mic_init();
+#endif
     playlist_init(&playlist);
     input_init();
     hud_background_init();
@@ -267,9 +348,11 @@ void lyla_shutdown(void)
     platform_tray_shutdown();
     hud_background_shutdown();
     player_shutdown();
+#ifdef WITH_MICROPHONE
+    mic_shutdown();
+#endif
     text_shutdown();
     visualizer_shutdown();
     fft_analyzer_destroy(analyzer);
     discord_shutdown();
 }
-
