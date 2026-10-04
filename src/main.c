@@ -28,6 +28,9 @@ int main()
     SetConfigFlags(raylib_cfg_flag);
     InitWindow(1280, 720, "UnknownRori's Lyla Music Player");
     InitAudioDevice();
+#ifdef WITH_MICROPHONE
+    InitMicrophoneDevice(44100, 2);
+#endif
     SetTargetFPS(60);
 
     lyla_init();
@@ -44,6 +47,9 @@ int main()
 
     lyla_shutdown();
 
+#ifdef WITH_MICROPHONE
+    CloseMicrophoneDevice();
+#endif
     CloseAudioDevice();
     CloseWindow();
 }

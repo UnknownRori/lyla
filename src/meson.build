@@ -52,6 +52,10 @@ else
   dependencies += discord_dep
 endif
 
+if get_option('WITH_MICROPHONE')
+  c_args += '-DWITH_MICROPHONE'
+endif
+
 
 if host_machine.system() == 'linux'
   dependencies += [
@@ -72,4 +76,12 @@ executable(
   link_args: link_args,
   c_args: c_args,
   kwargs: exe_args,
+  install: true,
+  install_dir: '.',
+  install_tag: 'app'
 )
+
+install_data('./icon.ico'     , install_dir: '.', install_tag: 'app' )
+install_data('../README.md'   , install_dir: '.', install_tag: 'app' )
+install_data('../LICENSE'     , install_dir: '.', install_tag: 'app' )
+install_data('../CREDITS.txt' , install_dir: '.', install_tag: 'app' )
