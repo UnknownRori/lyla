@@ -12,7 +12,7 @@ Rectangle hud_visualizer_area(int w, int h);
 void hud_draw_timeline(int w, int h);
 
 void hud_draw_play_time(int w, int h);
-void hud_draw_track_info(Track* track, int w, int h);
+void hud_draw_track_info(Track* track, int w, int h, f32 elapsed, f32 duration);
 
 bool hud_update_playlist(Playlist* playlist, void (*play_next_song)(void));
 void hud_render_playlist(Playlist* playlist, int w, int h);

@@ -175,7 +175,7 @@ static void draw_frame(int w, int h, f32 dt)
             m, detach, beat, dt);
 
         hud_draw_timeline(w, h);
-        if (show_track_info) hud_draw_track_info(current, w, h);
+        if (show_track_info) hud_draw_track_info(current, w, h, player_time(), player_length());
         visualizer_draw_corner_glow(beat, w, h);
     } else {
         hud_background(&marking, w, h, dt);
