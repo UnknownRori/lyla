@@ -17,3 +17,4 @@ size_t fft_analyzer_analyze(FFT_Analyzer* a, float dt);
 
 const float *fft_analyzer_smooth(const FFT_Analyzer* a);
 const float *fft_analyzer_smear(const FFT_Analyzer* a);
+f32 fft_analyzer_beat(const FFT_Analyzer* a);

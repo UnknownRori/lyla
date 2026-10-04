@@ -116,7 +116,8 @@ static void step_particles(Rectangle b, usize m, bool detached, f32 dt)
     }
 }
 
-void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, usize m, bool detached, f32 dt)
+void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear,
+                       usize m, bool detached, f32 beat, f32 dt)
 {
     RORI_ASSERT(smooth != NULL && "dummy dumb dumb");
     RORI_ASSERT(smear != NULL && "dummy dumb dumb");
@@ -138,7 +139,7 @@ void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, 
         Vector2 start = { boundary.x + i*cell_width + cell_width/2,
                           boundary.y + boundary.height - boundary.height*2/3*t };
         Vector2 end   = { start.x, boundary.y + boundary.height };
-        DrawLineEx(start, end, cell_width/3*sqrtf(t), color);
+        DrawLineEx(start, end, cell_width/3*sqrtf(t)*(1.0f + 0.3f*beat), color);
     }
 
     if (!ready) return;
@@ -196,12 +197,41 @@ void visualizer_render(Rectangle boundary, const f32* smooth, const f32* smear, 
     for (usize i = 0; i < m; ++i) {
         f32 t = smooth[i];
         Vector2 center = free_flight ? particles[i].pos : homes[i];
-        f32 radius = cell_width*6*sqrtf(t)*(1.0f + 0.6f*detach);   // bloom
+        f32 radius = cell_width*6*sqrtf(t)*(1.0f + 0.6f*detach)*(1.0f + 0.35f*beat);
         
         Color color = ColorFromHSV((f32)i/m*360, saturation, value);
+        color = ColorBrightness(color, 0.25f*beat);
         
         Vector2 pos = { center.x - radius, center.y - radius };
         DrawTextureEx(texture, pos, 0, 2*radius, color);
     }
     EndShaderMode();
 }
+
+void visualizer_draw_corner_glow(f32 beat, int w, int h)
+{
+    if (beat < 0.01f) return;
+
+    f32 m = fminf((f32)w, (f32)h);
+    int t = (int)(m*(0.04f + 0.01f*beat));
+    int lw = (int)(w*0.30f);
+    int lh = (int)(h*0.30f);
+
+    f32 hue = fmodf((f32)GetTime()*30.0f, 360.0f);
+    Color c = ColorAlpha(ColorFromHSV(hue, 0.45f, 1.0f), 0.18f*beat);
+    Color n = ColorAlpha(c, 0.0f);
+
+    BeginBlendMode(BLEND_ADDITIVE);
+    // horizontal
+    DrawRectangleGradientEx((Rectangle){0,      0,     lw, t}, c, n, n, n);
+    DrawRectangleGradientEx((Rectangle){w - lw, 0,     lw, t}, n, n, n, c);
+    DrawRectangleGradientEx((Rectangle){0,      h - t, lw, t}, n, c, n, n);
+    DrawRectangleGradientEx((Rectangle){w - lw, h - t, lw, t}, n, n, c, n);
+    // vertical
+    DrawRectangleGradientEx((Rectangle){0,      0,      t, lh}, c, n, n, n);
+    DrawRectangleGradientEx((Rectangle){w - t,  0,      t, lh}, n, n, n, c);
+    DrawRectangleGradientEx((Rectangle){0,      h - lh, t, lh}, n, c, n, n);
+    DrawRectangleGradientEx((Rectangle){w - t,  h - lh, t, lh}, n, n, c, n);
+    EndBlendMode();
+}
+

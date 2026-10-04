@@ -64,7 +64,7 @@ bool player_play_track(Track track)
     unload_current();
     music = track;
     
-    const char* display_name = music.title ? music.title : music.path;
+    const char* display_name = music.title ? music.title : GetFileNameWithoutExt(music.path);
     strncpy(name, display_name, sizeof(name));
     
     fft_analyzer_reset(analyzer);

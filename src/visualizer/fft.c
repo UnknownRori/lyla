@@ -10,6 +10,12 @@
 
 #define FFT_PI 3.14159265358979323846f
 
+#define SAMPLE_RATE   44100.0f
+#define BASS_HZ       150.0f
+#define BEAT_COOLDOWN 0.15f
+#define BEAT_SENS     1.6f
+#define BEAT_FLOOR    0.002f
+
 typedef float complex Cplx;
 
 struct FFT_Analyzer {
@@ -19,6 +25,11 @@ struct FFT_Analyzer {
     float out_log[FFT_SIZE];
     float out_smooth[FFT_SIZE];
     float out_smear[FFT_SIZE];
+
+    float prev_bass;
+    float flux_avg;
+    float cooldown;
+    float beat;
 };
 
 FFT_Analyzer *fft_analyzer_create(void)
@@ -117,9 +128,29 @@ size_t fft_analyzer_analyze(FFT_Analyzer* a, f32 dt)
         a->out_smooth[i] += (a->out_log[i] - a->out_smooth[i])*smoothness*dt;
         a->out_smear[i]  += (a->out_smooth[i] - a->out_smear[i])*smearness*dt;
     }
+    // Beat detection
+    usize bass_bins = (usize)(BASS_HZ*FFT_SIZE/SAMPLE_RATE);
+    if (bass_bins < 2) bass_bins = 2;
+
+    f32 bass = 0.0f;
+    for (usize q = 1; q <= bass_bins; ++q) bass += cabsf(a->out_raw[q]);
+    bass /= (bass_bins*FFT_SIZE*0.25f);
+
+    f32 flux = fmaxf(0.0f, bass - a->prev_bass);
+    a->prev_bass = bass;
+
+    a->cooldown -= dt;
+    if (a->cooldown <= 0.0f && flux > a->flux_avg*BEAT_SENS + BEAT_FLOOR) {
+        a->beat = 1.0f;
+        a->cooldown = BEAT_COOLDOWN;
+    }
+    a->flux_avg += (flux - a->flux_avg)*fminf(1.0f, 2.0f*dt);
+
+    a->beat *= expf(-8.0f*dt); // decay so I'm not forgor
 
     return m;
 }
 
 const f32 *fft_analyzer_smooth(const FFT_Analyzer* a) { return a->out_smooth; }
 const f32 *fft_analyzer_smear(const FFT_Analyzer* a)  { return a->out_smear; }
+f32 fft_analyzer_beat(const FFT_Analyzer* a) { return a->beat; }

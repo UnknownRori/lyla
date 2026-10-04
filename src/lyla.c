@@ -147,26 +147,36 @@ static void draw_frame(int w, int h, f32 dt)
             hud_background(current->thumbnail, w, h, dt);
         }
 
+
         bool detach = player_paused();
-        if (player_progress() < 0.050 && player_get_fast_energy() < 0.095) {
-            detach = true;
-        } else if (player_progress() > 0.98 && player_get_fast_energy() < 0.13) {
-            detach = true;
-        } else if (player_get_fast_energy() < 0.03) {
-            detach = true;
+        static f32 quiet_time = 0.0f;
+
+        f32 fe = player_get_fast_energy(), se = player_get_slow_energy();
+        f32 t = player_time();
+        f32 prog = player_progress();
+
+        bool quiet;
+        if (t < 15.0f || prog < 0.05f) {
+            quiet = fe < 0.095f;
+        } else if (se < 0.005f) {
+            quiet = fe < 0.01f;
+        } else if (prog > 0.98f) {
+            quiet = fe < se*0.7f;
+        } else {
+            quiet = fe < se*0.15f;
         }
+
+        quiet_time = quiet ? quiet_time + dt : 0.0f;
+        detach = quiet_time > 0.4f;
         detach |= force_detach;
-        visualizer_render(
-            hud_visualizer_area(w, h),
-            fft_analyzer_smooth(analyzer),
-            fft_analyzer_smear(analyzer),
-            m,
-            detach,
-            dt
-        );
+        f32 beat = fft_analyzer_beat(analyzer);
+        visualizer_render(hud_visualizer_area(w, h),
+            fft_analyzer_smooth(analyzer), fft_analyzer_smear(analyzer),
+            m, detach, beat, dt);
 
         hud_draw_timeline(w, h);
         if (show_track_info) hud_draw_track_info(current, w, h);
+        visualizer_draw_corner_glow(beat, w, h);
     } else {
         hud_background(&marking, w, h, dt);
         hud_draw_idle(w, h);
@@ -214,6 +224,7 @@ void lyla_init(void)
     playlist_load_ini(&playlist, "playlists.ini");
     if (playlist.count > 0 ) {
         play_song();
+        player_toggle_pause();
     }
 
     discord_init(DISCORD_APP_ID);
