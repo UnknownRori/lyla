@@ -1,2 +1,3 @@
 option('WINDOW_NO_CONSOLE', type: 'boolean', value: true, description: 'Remove window console')
 option('NO_DISCORD', type: 'boolean', value: false, description: 'Remove discord presence')
+option('WITH_MICROPHONE', type: 'boolean', value: false, description: 'Add microphone support')

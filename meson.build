@@ -2,19 +2,6 @@ project('lyla', 'c', default_options: [
     'c_std=c99'
 ])
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
-
-rstb_inc = include_directories('./external/rstb')
-
-raylib_proj = subproject('raylib', default_options: [
-  'default_library=static',
-  'SUPPORT_FILEFORMAT_FLAC=true',
-  'SUPPORT_FILEFORMAT_MP3=true',
-])
-raylib_dep = raylib_proj.get_variable('raylib_dep')
-
-rconfig_proj = subproject('rconfig', default_options: ['default_library=static'])
-rconfig_dep = rconfig_proj.get_variable('rconfig_dep')
-
 cmake   = import('cmake')
 
 if not get_option('NO_DISCORD')
@@ -28,6 +15,28 @@ if not get_option('NO_DISCORD')
   discord = cmake.subproject('discord', options: discord_opt)
   discord_dep = discord.dependency('discord-rpc')
 endif
+
+rstb_inc = include_directories('./external/rstb')
+
+raylib_options = [
+  'default_library=static',
+  'SUPPORT_FILEFORMAT_FLAC=true',
+  'SUPPORT_FILEFORMAT_MP3=true',
+  'SUPPORT_MODULE_RMODELS=false',
+  'SUPPORT_CAMERA_SYSTEM=false',
+  'SUPPORT_GESTURES_SYSTEM=false',
+  'SUPPORT_COMPRESSION_API=false',
+  'SUPPORT_AUTOMATION_EVENTS=false',
+]
+if get_option('WITH_MICROPHONE')
+  raylib_options += 'SUPPORT_MIC_SYSTEM=true'
+endif
+
+raylib_proj = subproject('raylib', default_options: raylib_options)
+raylib_dep = raylib_proj.get_variable('raylib_dep')
+
+rconfig_proj = subproject('rconfig', default_options: ['default_library=static', 'install=false'])
+rconfig_dep = rconfig_proj.get_variable('rconfig_dep')
 
 taglib_opt = cmake.subproject_options()
 taglib_opt.add_cmake_defines({

@@ -18,3 +18,4 @@ builddir/
 songs/*/*
 
 env.h
+*.iss
