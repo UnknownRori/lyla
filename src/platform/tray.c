@@ -27,6 +27,7 @@ struct tray tray = {
     .menu = (struct tray_menu[]){
         {"Toggle as Desktop Wallpaper", 0, 0, desktop_attach, NULL},
         {"Exit", 0, 0, exit_tray, NULL},
+        {NULL},
     },
 };
 
