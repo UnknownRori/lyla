@@ -35,7 +35,7 @@ endif
 raylib_proj = subproject('raylib', default_options: raylib_options)
 raylib_dep = raylib_proj.get_variable('raylib_dep')
 
-rconfig_proj = subproject('rconfig', default_options: ['default_library=static', 'install=false'])
+rconfig_proj = subproject('rconfig', default_options: ['default_library=static'])
 rconfig_dep = rconfig_proj.get_variable('rconfig_dep')
 
 taglib_opt = cmake.subproject_options()
@@ -46,7 +46,11 @@ taglib_opt.add_cmake_defines({
   'WITH_ZLIB':         false,
 })
 taglib = cmake.subproject('taglib', options: taglib_opt)
-taglib_dep = taglib.dependency('tag_c')
+taglib_c_dep = taglib.dependency('tag_c')
+taglib_dep = taglib.dependency('tag')
 taglib_c_inc = include_directories('./subprojects/taglib/bindings/c')
+
+iprof_proj = subproject('iprof', default_options: ['default_library=static'])
+iprof_dep = iprof_proj.get_variable('iprof_dep')
 
 subdir('src')

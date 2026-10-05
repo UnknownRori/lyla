@@ -19,12 +19,13 @@ src_files = files(
   './music/playlist.c',
   './music/randomizer.c',
   './music/tag.c',
-  './thirdparty/discord.c',
-  './thirdparty/qrcodegen.c',
   './resources.c',
   './platform/tray.c',
   './platform/wallpaper.c',
   './platform/force.c',
+  './thirdparty/discord.c',
+  './thirdparty/qrcodegen.c',
+  './thirdparty/profiler.c',
 )
 if host_machine.system() == 'windows'
   winmod = import('windows')
@@ -45,11 +46,15 @@ endif
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required: false)
 
-dependencies = [m_dep, raylib_dep, rconfig_dep, taglib_dep]
+dependencies = [m_dep, raylib_dep, rconfig_dep, taglib_dep, taglib_c_dep]
 if get_option('NO_DISCORD')
   c_args += '-DNO_DISCORD'
 else
   dependencies += discord_dep
+endif
+if get_option('WITH_PROFILER')
+  dependencies += iprof_dep
+  c_args += '-DWITH_PROFILER'
 endif
 
 if get_option('WITH_MICROPHONE')
@@ -78,10 +83,9 @@ executable(
   kwargs: exe_args,
   install: true,
   install_dir: '.',
-  install_tag: 'app'
 )
 
-install_data('./icon.ico'     , install_dir: '.', install_tag: 'app' )
-install_data('../README.md'   , install_dir: '.', install_tag: 'app' )
-install_data('../LICENSE'     , install_dir: '.', install_tag: 'app' )
-install_data('../CREDITS.txt' , install_dir: '.', install_tag: 'app' )
+install_data('./icon.ico'     , install_dir: '.', install_tag: 'file' )
+install_data('../README.md'   , install_dir: '.', install_tag: 'file' )
+install_data('../LICENSE'     , install_dir: '.', install_tag: 'file' )
+install_data('../CREDITS.txt' , install_dir: '.', install_tag: 'file' )
