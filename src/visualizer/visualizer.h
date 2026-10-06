@@ -20,3 +20,6 @@ void visualizer_render(
 );
 
 void visualizer_draw_corner_glow(f32 beat, int w, int h);
+
+void visualizer_render_radial(Rectangle boundary, const f32* smooth, const f32* smear,
+                              usize m, bool detached, f32 beat, f32 dt);

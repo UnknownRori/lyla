@@ -235,3 +235,145 @@ void visualizer_draw_corner_glow(f32 beat, int w, int h)
     EndBlendMode();
 }
 
+// 1 = left/right mirrored (bass at top, treble meets at bottom)
+// 0 = single sweep around the full circle
+#define RADIAL_MIRROR 1
+#define RADIAL_RIGHT_RESERVE 0.45f
+ 
+static inline Vector2 polar(Vector2 c, f32 r, f32 a)
+{
+    return (Vector2){ c.x + cosf(a)*r, c.y + sinf(a)*r };
+}
+ 
+static inline f32 radial_angle(usize i, usize s, usize m, f32 sweep, f32 spin)
+{
+    return -PI/2 + spin + (s ? -1.0f : 1.0f)*((f32)i/m)*sweep;
+}
+ 
+// Burst outward from the ring with a bit of tangential scatter.
+static void launch_particles_radial(Rectangle b, Vector2 c, usize n)
+{
+    f32 half = fminf(b.width, b.height)*0.5f;
+    for (usize k = 0; k < n; ++k) {
+        particles[k].pos = homes[k];
+        f32 dx = homes[k].x - c.x, dy = homes[k].y - c.y;
+        f32 d  = sqrtf(dx*dx + dy*dy);
+        if (d < 1e-3f) { dx = 0; dy = -1; d = 1; }
+        f32 nx = dx/d, ny = dy/d;
+        f32 speed = half*(0.8f + 1.2f*hash01(k, 12.9898f));
+        f32 tang  = (hash01(k, 78.233f) - 0.5f)*half*0.8f;
+        particles[k].vel.x = nx*speed + (-ny)*tang;
+        particles[k].vel.y = ny*speed + ( nx)*tang;
+    }
+    free_flight = true;
+}
+ 
+void visualizer_render_radial(Rectangle boundary, const f32* smooth, const f32* smear,
+                              usize m, bool detached, f32 beat, f32 dt)
+{
+    RORI_ASSERT(smooth != NULL && "dummy dumb dumb");
+    RORI_ASSERT(smear != NULL && "dummy dumb dumb");
+ 
+    update_detach(detached, dt);
+ 
+    boundary.width *= (1.0f - RADIAL_RIGHT_RESERVE);
+ 
+    usize sides = RADIAL_MIRROR ? 2 : 1;
+    if (m > MAX_PARTICLES/sides) m = MAX_PARTICLES/sides;
+    if (m == 0) return;
+    usize n = m*sides;
+ 
+    static f32 spin = 0.0f;
+    spin += dt*0.15f*(1.0f - detach);
+ 
+    f32 half   = fminf(boundary.width, boundary.height)*0.5f;
+    f32 r0     = half*0.35f*(1.0f + 0.05f*beat);
+    f32 maxlen = half*0.55f;
+    Vector2 c  = { boundary.x + boundary.width*0.5f, boundary.y + boundary.height*0.5f };
+ 
+    f32 sweep      = RADIAL_MIRROR ? PI : 2*PI;
+    f32 cell_width = (2*PI*r0)/n;
+    f32 saturation = 0.75f, value = 1.0f;
+ 
+    // Spikes and smears shrink back into the ring as the circles detach.
+    f32 bar_scale = 1.0f - detach;
+ 
+    // Base circle (fades a little while detached)
+    DrawRing(c, r0 - cell_width*0.6f, r0, 0, 360, 96,
+             ColorAlpha(WHITE, (0.10f + 0.25f*beat)*(0.4f + 0.6f*bar_scale)));
+ 
+    // Bars
+    for (usize s = 0; s < sides; ++s) {
+        for (usize i = 0; i < m; ++i) {
+            f32 t = smooth[i]*bar_scale;
+            f32 a = radial_angle(i, s, m, sweep, spin);
+            Color color = ColorFromHSV((f32)i/m*360, saturation, value);
+            DrawLineEx(polar(c, r0, a), polar(c, r0 + maxlen*t, a),
+                       cell_width*0.6f*sqrtf(t)*(1.0f + 0.3f*beat), color);
+        }
+    }
+ 
+    if (!ready) return;
+    Texture2D texture = { rlGetTextureIdDefault(), 1, 1, 1, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 };
+ 
+    // Smears
+    SetShaderValue(circle, radius_loc, (f32[1]){ 0.3f }, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(circle, power_loc,  (f32[1]){ 3.0f }, SHADER_UNIFORM_FLOAT);
+    BeginShaderMode(circle);
+    for (usize s = 0; s < sides; ++s) {
+        for (usize i = 0; i < m; ++i) {
+            f32 a  = radial_angle(i, s, m, sweep, spin);
+            f32 rs = r0 + maxlen*smear[i]*bar_scale;
+            f32 re = r0 + maxlen*smooth[i]*bar_scale;
+            f32 outer = fmaxf(rs, re), inner = fminf(rs, re);
+            if (outer - inner < 0.5f) continue;
+ 
+            f32 width = cell_width*2.0f*sqrtf(smooth[i]*bar_scale);
+            Color color = ColorFromHSV((f32)i/m*360, saturation, value);
+ 
+            Vector2 p = polar(c, outer, a);
+            Rectangle dest = { p.x, p.y, width, outer - inner };
+            Vector2 origin = { width/2, 0 };
+            Rectangle source = (re <= rs) ? (Rectangle){ 0, 0.0f, 1, 0.5f }
+                                          : (Rectangle){ 0, 0.5f, 1, 0.5f };
+            DrawTexturePro(texture, source, dest, origin, a*RAD2DEG + 90.0f, color);
+        }
+    }
+    EndShaderMode();
+ 
+    SetShaderValue(circle, radius_loc, (f32[1]){ 0.07f }, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(circle, power_loc,  (f32[1]){ 5.0f },  SHADER_UNIFORM_FLOAT);
+ 
+    // Home position of each particle = tip of its spike
+    for (usize s = 0; s < sides; ++s) {
+        for (usize i = 0; i < m; ++i) {
+            f32 a = radial_angle(i, s, m, sweep, spin);
+            homes[s*m + i] = polar(c, r0 + maxlen*smooth[i], a);
+        }
+    }
+ 
+    if (detached && !prev_detached && !free_flight) launch_particles_radial(boundary, c, n);
+    prev_detached = detached;
+    if (!detached && detach == 0.0f) free_flight = false;
+ 
+    if (free_flight) {
+        step_particles(boundary, n, detached, dt);
+        step_particles(boundary, n, detached, dt);
+    }
+ 
+    // Tip glows / free particles
+    BeginShaderMode(circle);
+    for (usize s = 0; s < sides; ++s) {
+        for (usize i = 0; i < m; ++i) {
+            usize k = s*m + i;
+            f32 t = smooth[i];
+            Vector2 center = free_flight ? particles[k].pos : homes[k];
+            f32 radius = cell_width*3.0f*sqrtf(t)*(1.0f + 1.2f*detach)*(1.0f + 0.35f*beat);
+            Color color = ColorFromHSV((f32)i/m*360, saturation, value);
+            color = ColorBrightness(color, 0.25f*beat);
+            Vector2 pos = { center.x - radius, center.y - radius };
+            DrawTextureEx(texture, pos, 0, 2*radius, color);
+        }
+    }
+    EndShaderMode();
+}

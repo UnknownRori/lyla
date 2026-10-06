@@ -125,7 +125,9 @@ size_t fft_analyzer_analyze(FFT_Analyzer* a, f32 dt)
     // Smooth and smear
     for (usize i = 0; i < m; ++i) {
         f32 smoothness = 8, smearness = 3;
-        a->out_smooth[i] += (a->out_log[i] - a->out_smooth[i])*smoothness*dt;
+        f32 target = a->out_log[i];
+        f32 k = target > a->out_smooth[i] ? 60.0f : 8.0f;
+        a->out_smooth[i] += (target - a->out_smooth[i])*fminf(1.0f, k*dt);
         a->out_smear[i]  += (a->out_smooth[i] - a->out_smear[i])*smearness*dt;
     }
     // Beat detection

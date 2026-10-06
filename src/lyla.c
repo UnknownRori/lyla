@@ -94,9 +94,15 @@ static void draw_mic_visualizer(int w, int h, f32 dt)
     bool detach = force_detach;
     f32 beat = fft_analyzer_beat(mic_analyzer);
 
-    visualizer_render(hud_visualizer_area(w, h),
-        fft_analyzer_smooth(mic_analyzer), fft_analyzer_smear(mic_analyzer),
-        m, detach, beat, dt);
+    if (radial) {
+        visualizer_render_radial(hud_visualizer_area(w, h),
+            fft_analyzer_smooth(mic_analyzer), fft_analyzer_smear(mic_analyzer),
+            m, detach, beat, dt);
+    } else {
+        visualizer_render(hud_visualizer_area(w, h),
+            fft_analyzer_smooth(mic_analyzer), fft_analyzer_smear(mic_analyzer),
+            m, detach, beat, dt);
+    }
     visualizer_draw_corner_glow(beat, w, h);
 }
 #endif
@@ -258,9 +264,15 @@ static void draw_frame(int w, int h, f32 dt)
             detach |= force_detach;
             detach |= player_paused();
             f32 beat = fft_analyzer_beat(analyzer);
-            visualizer_render(hud_visualizer_area(w, h),
-                fft_analyzer_smooth(analyzer), fft_analyzer_smear(analyzer),
-                m, detach, beat, dt);
+            if (radial) {
+                visualizer_render_radial(hud_visualizer_area(w, h),
+                    fft_analyzer_smooth(analyzer), fft_analyzer_smear(analyzer),
+                    m, detach, beat, dt);
+            } else {
+                visualizer_render(hud_visualizer_area(w, h),
+                    fft_analyzer_smooth(analyzer), fft_analyzer_smear(analyzer),
+                    m, detach, beat, dt);
+            }
             visualizer_draw_corner_glow(beat, w, h);
 
             hud_draw_timeline(w, h);
