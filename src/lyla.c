@@ -12,6 +12,7 @@
 #include "platform/tray.h"
 #include "resources.h"
 #include "thirdparty/discord.h"
+#include "thirdparty/profiler.h"
 #include "env.h"
 #include "music/player.h"
 #include "music/playlist.h"
@@ -22,6 +23,10 @@
 #include "platform/wallpaper.h"
 #include "visualizer/fft.h"
 #include "window_drag.h"
+
+PROFILER_DEF(music_visual);
+PROFILER_DEF(idle_visual);
+PROFILER_DEF(fft_analyze);
 
 static Playlist playlist = {0};
 static FFT_Analyzer* analyzer = NULL;
@@ -83,7 +88,9 @@ static void mic_shutdown(void)
 
 static void draw_mic_visualizer(int w, int h, f32 dt)
 {
+    PROFILER_REG(fft_analyze)
     size_t m = fft_analyzer_analyze(mic_analyzer, dt);
+    PROFILER_END
     bool detach = force_detach;
     f32 beat = fft_analyzer_beat(mic_analyzer);
 
@@ -108,8 +115,7 @@ void next_song()
 void play_song()
 {
     if (playlist.count <= 0) return;
-    Track track = {0};
-    playlist_get_current(&playlist, &track);
+    Track* track = playlist_get_current_ref(&playlist);
     if (!player_play_track(track)) {
         next_song();
         play_song();
@@ -153,13 +159,18 @@ static void handle_keyboard(f32 dt)
         return;
     }
 
-    if (input_key_pressed(KEY_M)) player_toggle_mute();
+    if (input_key_pressed(KEY_M)) {
+#ifdef WITH_MICROPHONE
+        mic_enabled = !mic_enabled;
+#endif
+        player_toggle_mute();
+    }
     if (input_key_pressed(KEY_R)) player_reset_progress();
     if (input_key_pressed(KEY_C)) {
-        playlist.count = 0;
+        player_shutdown();
+        playlist_clear(&playlist);
         idle_first = true;
         resource_reset();
-        player_shutdown();
     }
     if (input_key_pressed(KEY_S)) shuffle = !shuffle;
     if (input_key_pressed(KEY_D)) force_detach = !force_detach;
@@ -204,9 +215,12 @@ static void draw_frame(int w, int h, f32 dt)
 
 
     BeginDrawing();
+    PROFILER_BEGIN(frame)
     ClearBackground(ColorAlpha(GetColor(HUD_BACKGROUND_COLOR), 0.75f));
 
     if (player_has_track()) {
+        PROFILER_REG(music_visual)
+    
         Track* current = player_get_track();
         f32 fe = player_get_fast_energy(), se = player_get_slow_energy();
         f32 t = player_time();
@@ -223,8 +237,10 @@ static void draw_frame(int w, int h, f32 dt)
         else
 #endif
         {
+            PROFILER_REG(fft_analyze)
             size_t m = fft_analyzer_analyze(analyzer, dt);
             static f32 quiet_time = 0.0f;
+            PROFILER_END
 
             bool quiet;
             if (t < 15.0f || prog < 0.05f) {
@@ -249,8 +265,10 @@ static void draw_frame(int w, int h, f32 dt)
 
             hud_draw_timeline(w, h);
             if (show_track_info) hud_draw_track_info(current, w, h, t, du);
+            PROFILER_END
         }
     } else {
+        PROFILER_REG(idle_visual)
         if (idle_first) {
             text_prepare("Drag & Drop a music file");
             idle_first = false;
@@ -260,6 +278,7 @@ static void draw_frame(int w, int h, f32 dt)
         if (mic_analyzer != NULL && mic_enabled) draw_mic_visualizer(w, h, dt);
 #endif
         hud_draw_idle(w, h);
+        PROFILER_END
     }
 
     hud_overlay_pause(w, h);
@@ -275,8 +294,10 @@ static void draw_frame(int w, int h, f32 dt)
         0.f, 
         WHITE
     );
-
+    PROFILER_END;
+    profiler_draw(w, h);
     EndDrawing();
+    profiler_update();
 }
 
 void lyla_init(void)
@@ -303,15 +324,19 @@ void lyla_init(void)
     }
 
     playlist_load_ini(&playlist, "playlists.ini");
-    if (playlist.count > 0 ) {
-        play_song();
-        player_toggle_pause();
-    }
-
     discord_init(DISCORD_APP_ID);
     playlist_randomizer_init(&randomizer, playlist.count);
+    if (playlist.count > 0 ) {
+        shuffle = true;
+        playlist_next(&playlist);
+        play_song();
+        player_toggle_pause();
+        shuffle = false;
+    }
+
     platform_tray_init();
     window_drag_init();
+    profiler_init();
 }
 
 bool lyla_should_close()

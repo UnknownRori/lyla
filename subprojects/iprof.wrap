@@ -1,4 +1,4 @@
 [wrap-git]
-url = https://github.com/UnknownRori/iprof
-revision = main
+url = https://github.com/UnknownRori/iprof-nogl
+revision = rori
 depth = 1
