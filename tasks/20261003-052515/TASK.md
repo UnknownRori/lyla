@@ -1,6 +1,6 @@
 # load song metadata from playlist while keeping playlist.ini as prioerity
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: fix
 
