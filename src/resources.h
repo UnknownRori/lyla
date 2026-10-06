@@ -2,8 +2,8 @@
 
 #include <raylib.h>
 
-#define MAX_RESOURCE_TEXTURE 64
-#define MAX_RESOURCE_STRING 128
+#define MAX_RESOURCE_TEXTURE 256
+#define MAX_RESOURCE_STRING 256
 
 Texture* resource_generate_qr_code(const char* link);
 

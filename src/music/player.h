@@ -7,7 +7,7 @@
 void player_init(FFT_Analyzer *analyzer);
 void player_shutdown(void);
 
-bool player_play_track(Track track);
+bool player_play_track(Track* track);
 
 void player_update(void);
 

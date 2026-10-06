@@ -6,7 +6,7 @@
 #include <string.h>
 
 static FFT_Analyzer *analyzer;
-static Track music;
+static Track* music = NULL;
 static bool loaded = false;
 static bool paused = true;
 static char name[256];
@@ -43,9 +43,10 @@ static void audio_callback(void *buffer, unsigned int frames)
 static void unload_current(void)
 {
     if (!loaded) return;
-    DetachAudioStreamProcessor(music.music.stream, audio_callback);
-    StopMusicStream(music.music);
+    DetachAudioStreamProcessor(music->music.stream, audio_callback);
+    StopMusicStream(music->music);
     loaded = false;
+    music = NULL;
 }
 
 void player_init(FFT_Analyzer *a)
@@ -59,18 +60,22 @@ void player_shutdown(void)
     unload_current();
 }
 
-bool player_play_track(Track track)
+bool player_play_track(Track* track)
 {
     unload_current();
     music = track;
+    if (!IsMusicValid(music->music)) {
+        music->music = LoadMusicStream(music->path);
+    }
     
-    const char* display_name = music.title ? music.title : GetFileNameWithoutExt(music.path);
+    const char* display_name = music->title ? music->title : GetFileNameWithoutExt(music->path);
     strncpy(name, display_name, sizeof(name));
     
     fft_analyzer_reset(analyzer);
     
-    AttachAudioStreamProcessor(music.music.stream, audio_callback);
-    PlayMusicStream(music.music);
+    AttachAudioStreamProcessor(music->music.stream, audio_callback);
+    if (!IsMusicValid(music->music)) return false;
+    PlayMusicStream(music->music);
     loaded = true;
     paused = false;
     slow_energy = false;
@@ -83,24 +88,24 @@ bool player_play_track(Track track)
 void player_update(void)
 {
     if (!loaded) return;
-    UpdateMusicStream(music.music);
-    if (!paused && !IsMusicStreamPlaying(music.music)) PlayMusicStream(music.music);
+    UpdateMusicStream(music->music);
+    if (!paused && !IsMusicStreamPlaying(music->music)) PlayMusicStream(music->music);
 }
 
 bool player_has_track(void) { return loaded; }
 const char *player_name(void) { return name; }
 bool player_paused(void) { return paused; }
-Track* player_get_track(void) { return loaded ? &music : NULL; }
+Track* player_get_track(void) { return loaded ? music : NULL; }
 
 void player_toggle_pause(void)
 {
-    if (!loaded) return;
+    if (!loaded && !IsMusicValid(music->music)) return;
     paused = !paused;
-    if (paused) PauseMusicStream(music.music); else ResumeMusicStream(music.music);
+    if (paused) PauseMusicStream(music->music); else ResumeMusicStream(music->music);
 }
 
-f32 player_time(void)   { return loaded ? GetMusicTimePlayed(music.music) : 0; }
-f32 player_length(void) { return loaded ? GetMusicTimeLength(music.music) : 0; }
+f32 player_time(void)   { return loaded ? GetMusicTimePlayed(music->music) : 0; }
+f32 player_length(void) { return loaded ? GetMusicTimeLength(music->music) : 0; }
 
 f32 player_progress(void)
 {
@@ -110,30 +115,30 @@ f32 player_progress(void)
 
 void player_reset_progress()
 {
-    SeekMusicStream(music.music, 0.0);
+    SeekMusicStream(music->music, 0.0);
 }
 
 void player_seek_by(f32 seconds)
 {
-    if (!loaded) return;
+    if (!loaded && !IsMusicValid(music->music)) return;
     f32 t = player_time() + seconds;
     f32 len = player_length();
     if (t < 0) t = 0;
     if (t > len) t = len;
-    SeekMusicStream(music.music, t);
+    SeekMusicStream(music->music, t);
 }
 
 void player_seek_fraction(f32 t)
 {
-    if (!loaded) return;
+    if (!loaded && !IsMusicValid(music->music)) return;
     if (t < 0) t = 0;
     if (t > 1) t = 1;
-    SeekMusicStream(music.music, t*player_length());
+    SeekMusicStream(music->music, t*player_length());
 }
 
 f32 player_volume(void) { return GetMasterVolume(); }
-const char *player_artist(void) { return music.artist; }
-const char *player_album(void) {return music.album;}
+const char *player_artist(void) { return music->artist; }
+const char *player_album(void) {return music->album; }
 
 void player_change_volume(f32 delta)
 {

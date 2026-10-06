@@ -39,8 +39,17 @@ void playlist_get_current(Playlist* playlist, Track* track)
     playlist_get(playlist, track, playlist->current);
 }
 
+Track* playlist_get_current_ref(Playlist* playlist)
+{
+    return &playlist->items[playlist->current];
+}
+
 void playlist_clear(Playlist* playlist)
 {
+    // WARNING : this clear the entire thing
+    // rstb_da_foreach(Track, t, playlist) {
+    //     track_unload(t);
+    // }
     rstb_da_reset(playlist);
 }
 

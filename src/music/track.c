@@ -11,8 +11,9 @@ bool track_load(Track* track, const char* path)
     RORI_ASSERT(track != NULL && "dummy dumb dumb");
     memset(track, 0, sizeof(*track));
 
-    track->music = LoadMusicStream(path);
-    if (!IsMusicValid(track->music)) return false;
+    // Lazy load at player.c:p
+    // track->music = LoadMusicStream(path);
+    // if (!IsMusicValid(track->music)) return false;
 
     track->path = strdup(path);
     track->thumbnail = NULL;

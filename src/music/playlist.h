@@ -16,6 +16,7 @@ void playlist_next(Playlist* playlist);
 void playlist_set(Playlist* playlist, size_t index);
 void playlist_get(Playlist* playlist, Track* track, size_t index);
 void playlist_get_current(Playlist* playlist, Track* track);
+Track* playlist_get_current_ref(Playlist* playlist);
 void playlist_clear(Playlist* playlist);
 
 void playlist_load_ini(Playlist* playlist, const char* filepath);
