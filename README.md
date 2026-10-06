@@ -15,9 +15,9 @@ the visualization is on start of the stream and not yet open source I'm going to
 |-----------|----------------------------------|----------------------------------------------------------------------------------|
 |    OS     |   Windows, Linux                 |   Windows 30K                                                                    |
 |    CPU    |   1.0 Ghz                        |   6769.0Thz                                                                      |
-|    RAM    |   512 MB                         |   10000 TB                                                                       |
-|    GPU    |   256 MB                         |   50000.0 TB                                                                     |
-|  Storage  |   80mb                           |   10TB                                                                           |
+|    RAM    |   512 MB                         |   69690 TB                                                                       |
+|    GPU    |   256 MB                         |   67699.0 TB                                                                     |
+|  Storage  |   80mb                           |   69TB                                                                           |
 |  Graphics | Hardware accelerated OpenGL (3.3)| OpenGL (6969)                                                                    |
 | Sound Card|   Any                            | Sound Card That Makes The Music Sound Like A Live Orchestra Even Though It's Not |
 
@@ -37,6 +37,7 @@ the visualization is on start of the stream and not yet open source I'm going to
 | c     | clear playlist                      |
 | d     | force detach the (yo) ball          |
 | f1    | toggle background thumbnail panning |
+| f2    | switch visualization mode           |
 | f3    | toggle input (wallpaper mode)       |
 
 There are two mode in windows, a wallpaper mode and normal mode, in wallpaper mode all the control is disabled until you press
@@ -49,7 +50,8 @@ Requirement: meson.build, cmake, ninja, make
 There is no easy way to build since I use custom Raylib dependency, and maybe more custom thing
 that I made it private due to my life circumstance (feel free to deduce why).
 
-For now you can use your classic Raylib source with meson.build that has meson.options in there
+For now you can use your classic Raylib source with meson.build that has meson.options in there 
+except you use microphone
 
 ## Contributions
 
