@@ -1,6 +1,6 @@
 # playlist ui support mouse control
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: ux
 
