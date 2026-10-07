@@ -65,7 +65,7 @@ static int hud_track_sweep(f32 elapsed, f32 duration, f32* sweep, f32* line_scal
         *line_scale = 1.0f;
     } else {
         *sweep = 1.0f;
-        *line_scale = 1.0f - (t - 0.85f) / 0.15f;
+        *line_scale = t >= 1.0f ? 0.0f : 1.0f - (t - 0.85f) / 0.15f;
     }
 
     return mode;
