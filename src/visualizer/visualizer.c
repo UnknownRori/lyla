@@ -85,7 +85,7 @@ static bool     prev_detached = false;
 static Vector2  burst_c = {0};
 static f32      orbit_w = 0.0f;
 
-static inline f32 hash01(usize i, usize k) { return sinf(i*k)*0.5f + 0.5f; }
+static inline f32 hash01(usize i, usize k) { f32 s = sinf((f32)i*(f32)k)*43758.5453f; return s - floorf(s); }
 static inline f32 saturate(f32 x) { return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); }
 static inline f32 smooth01(f32 x) { x = saturate(x); return x*x*(3.0f - 2.0f*x); }
 
@@ -235,7 +235,7 @@ static void launch_particles(Rectangle b, usize m, const f32* smooth)
         f32 hx = hash01(i, 23.1f), hy = hash01(i, 47.3f);
         f32 tx = p->start.x + (p->start.x - cx)*0.35f + (hx - 0.5f)*b.width*0.2f;
         p->target = (Vector2){ fminf(fmaxf(tx, b.x + b.width*0.04f), b.x + b.width*0.96f),
-                               b.y + H*(0.15f + 0.5f*hy) };
+                       b.y + H*(0.10f + 0.82f*hy) };
 
         p->age = 0.0f;
     }
