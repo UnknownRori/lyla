@@ -1,0 +1,48 @@
+================================
+=== playlists.ini guide book ===
+================================
+
+in this file will explain how the writing and schema that playlists.ini
+uses, the first thing first, careful on modify the file or it will
+brick the entire loading system causing not to load properly and you
+need to save a new playlist to recover it.
+
+the song is started with this symbol [SONG_NUMBER], the number
+can be in any order as long it didn't have any duplicated or it will
+take the first copy and ignore the rest.
+
+---
+[<SONG_NUMBER>]
+<SONG_METADATA>
+---
+
+
+Make sure the number is correctly start at 1 and go on to infinity
+or your RAM is exhausted, if the numbering break with something like
+35 and then suddenly jump to 37 it will just stop loading the playlist
+with the only loaded one available to play.
+
+The song metadata is will start with <PROPERTY>=<VALUE> make sure
+it only contain one for each property for each song or it will only
+take the first one available.
+
+The property it has is as follow :
+- title : the title of the song that will be displayed below the thumbnail
+- thumbnail : thumbnail image must be in aspect ratio 1:1, 
+  it will also act as background, the content is file path from file explorer
+- file  : path to the music file for example "C:\Music\yadada.mp3"
+- album : the album name right below of the title text
+- artist : artist name beside the album name
+- link : bandcamp link to the album
+
+example :
+
+---
+[1]
+title="Snow Rabbit"
+file="path from windows explorer to the music file"
+thumbnail="path from windows explorer to the png or jpg"
+album="雪翼の系譜"
+artist="Umiai"
+link="https://seapulse.bandcamp.com/album/-"
+---

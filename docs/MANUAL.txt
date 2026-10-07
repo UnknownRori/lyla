@@ -1,0 +1,32 @@
+============
+== MANUAL ==
+============
+
+Shortcut and General Control
+
+- Left Click and drag: move the window
+- Left Click and drag + left shift: resie the window
+- ~ : Open Playlist
+- S : Toggle Shuffle (No indicator make sure you remember:p)
+- Enter : Next Song / Confirm Song in Playlist
+- F : Fullscreen
+- T : Toggle Track info
+- F1 : Toggle background pan from Follow Mouse or Random
+- F2 : Switch between classic or radial visualization
+- F3 : Wallpaper Mode Input Activation (red line at the edge is active)
+- F11 : Performance monitor (Disabled most of the time can cause spike on CPU and RAM usage if activate for too long)
+- Arrow Key Up and Down : Volume and playlist navigation
+- Arrow Key Left and Right : Seek track by 5s
+- CTRL + S : save playlist
+
+
+== System Tray ==
+
+This only currently on Windows only user
+
+- Toggle as Desktop Wallpaper : as name suggest it will act as live wallpaper and the control will be disabled until F3 is pressed
+- Quit : If somehow you can't exit it
+
+== Playlist ==
+For more info on how to add song manually you can write on playlists.ini file beside it, 
+or you can just drag and drop file and press CTRL+S
