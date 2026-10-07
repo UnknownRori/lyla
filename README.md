@@ -22,6 +22,8 @@ the visualization is on start of the stream and not yet open source I'm going to
 | Sound Card|   Any                            | Sound Card That Makes The Music Sound Like A Live Orchestra Even Though It's Not |
 
 *The requirement might change over the course of development
+*Web build is for demo showcase and might be slow or might crash your browser
+*Minimum GLIBC for the Linux is 2.38 before is because GLIBC_2.43 I was lazy to compile:p
 
 ## Keybinds
 
@@ -35,10 +37,14 @@ the visualization is on start of the stream and not yet open source I'm going to
 | r     | reset progress                      |
 | f     | fullscreen                          |
 | c     | clear playlist                      |
+| m     | mute                                |
 | d     | force detach the (yo) ball          |
+| ctrl+s| save playlist                       |
 | f1    | toggle background thumbnail panning |
 | f2    | switch visualization mode           |
 | f3    | toggle input (wallpaper mode)       |
+| arrow up and down    | volume and navigation on playlist                                |
+| arrow left and right    | seek song by 5s                                |
 
 There are two mode in windows, a wallpaper mode and normal mode, in wallpaper mode all the control is disabled until you press
 specific key to activate it, the wallpaper mode only available on windows for now in system tray.
