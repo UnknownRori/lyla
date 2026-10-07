@@ -1,8 +1,6 @@
 # Lyla - Overly-ambitious music player
 
-
-
-https://github.com/user-attachments/assets/87132c79-4ad7-4bd0-891a-5f234814d6b6
+https://github.com/user-attachments/assets/c89ef467-9f06-48eb-985b-009718f79dd3
 
 Music by [Rigel Theatre](https://www.rigeltheatre.com/)
 
