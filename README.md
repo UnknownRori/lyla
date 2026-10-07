@@ -22,7 +22,9 @@ the visualization is on start of the stream and not yet open source I'm going to
 | Sound Card|   Any                            | Sound Card That Makes The Music Sound Like A Live Orchestra Even Though It's Not |
 
 *The requirement might change over the course of development
+
 *Web build is for demo showcase and might be slow or might crash your browser
+
 *Minimum GLIBC for the Linux is 2.38 before is because GLIBC_2.43 I was lazy to compile:p
 
 ## Keybinds
