@@ -1,6 +1,12 @@
 project('lyla', 'c', default_options: [
-    'c_std=c99'
+    'c_std=gnu11',
+    'cpp_std=gnu++17',
 ])
+os = host_machine.system()
+os_is_emscripten = (os == 'emscripten')
+os_windows = (os == 'windows')
+os_is_linux = (os == 'linux')
+
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
 cmake   = import('cmake')
 
@@ -20,6 +26,7 @@ rstb_inc = include_directories('./external/rstb')
 
 raylib_options = [
   'default_library=static',
+  'c_std=gnu99',
   'SUPPORT_FILEFORMAT_FLAC=true',
   'SUPPORT_FILEFORMAT_MP3=true',
   'SUPPORT_MODULE_RMODELS=false',
@@ -50,7 +57,9 @@ taglib_c_dep = taglib.dependency('tag_c')
 taglib_dep = taglib.dependency('tag')
 taglib_c_inc = include_directories('./subprojects/taglib/bindings/c')
 
-iprof_proj = subproject('iprof', default_options: ['default_library=static'])
-iprof_dep = iprof_proj.get_variable('iprof_dep')
+if get_option('WITH_PROFILER')
+  iprof_proj = subproject('iprof', default_options: ['default_library=static'])
+  iprof_dep = iprof_proj.get_variable('iprof_dep')
+endif
 
 subdir('src')

@@ -3,6 +3,7 @@ src_files = files(
   './lyla.c',
   './text.c',
   './input.c',
+  './resources.c',
   './window_drag.c',
   './visualizer/fft.c',
   './visualizer/visualizer.c',
@@ -14,12 +15,14 @@ src_files = files(
   './ui/track_info.c',
   './ui/background.c',
   './ui/overlay.c',
+  './ui/confirm.c',
   './music/player.c',
   './music/track.c',
   './music/playlist.c',
+  './music/playlist_search.c',
   './music/randomizer.c',
   './music/tag.c',
-  './resources.c',
+  './utf8/fold.c',
   './platform/tray.c',
   './platform/wallpaper.c',
   './platform/force.c',
@@ -27,16 +30,24 @@ src_files = files(
   './thirdparty/qrcodegen.c',
   './thirdparty/profiler.c',
 )
-if host_machine.system() == 'windows'
-  winmod = import('windows')
-  src_files += winmod.compile_resources('./app.rc')
-endif
-
 exe_args = {}
 link_args = []
 c_args = []
 
-if host_machine.system() == 'windows'  
+if os_is_emscripten
+  c_args += '-DPLATFORM_WEB'
+  c_args += '-DGRAPHICS_API_OPENGL_ES2'
+  link_args += '-sUSE_GLFW=3'
+  link_args += '-sASYNCIFY'
+  link_args += '-sWASM=1'
+  link_args += '-sALLOW_MEMORY_GROWTH=1'
+  link_args += '-sINITIAL_MEMORY=67108864'
+  link_args += ['-sASSERTIONS=2', '-sSTACK_OVERFLOW_CHECK=2', '-g', '--profiling-funcs']
+endif
+
+if os_windows
+  winmod = import('windows')
+  src_files += winmod.compile_resources('./app.rc')
   link_args += '-static'
   if get_option('buildtype') == 'release' or get_option('WINDOW_NO_CONSOLE')
     exe_args += {'win_subsystem': 'windows'}
