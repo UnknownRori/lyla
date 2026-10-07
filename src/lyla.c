@@ -431,7 +431,7 @@ void lyla_update(void)
     if (input_mouse_pressed(MOUSE_BUTTON_RIGHT) && !IsWallpaperAttached()) {
         request_exit();
     }
-    if (player_progress() > 0.998) {
+    if (player_time() > player_length() - 0.1) {
         next_song();
         play_song();
     }
