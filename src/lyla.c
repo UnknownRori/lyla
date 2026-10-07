@@ -40,6 +40,7 @@ static PlaylistRandomizer randomizer;
 static Texture marking = {0};
 static bool radial = false;
 static bool idle_first = true;
+static bool playlist_dirty = false;
 
 #ifdef WITH_MICROPHONE
 #define MIC_RATE 44100
@@ -107,6 +108,18 @@ static void draw_mic_visualizer(int w, int h, f32 dt)
 }
 #endif
 
+static void prepare_playlist_glyphs(void)
+{
+    for (size_t i = 0; i < playlist.count; i++) {
+        Track* t = &playlist.items[i];
+        text_collect(t->title);
+        text_collect(t->artist);
+        text_collect(t->album);
+        text_collect(GetFileNameWithoutExt(t->path));
+    }
+    text_flush();
+}
+
 void next_song()
 {
     if (shuffle) {
@@ -130,27 +143,74 @@ void play_song()
     text_prepare(TextFormat("%s %s %s", player_name(), player_artist(),  player_album()));
 }
 
+static bool save_playlist(void)
+{
+    TraceLog(LOG_INFO, "saving");
+    if (!playlist_save_ini(&playlist, "playlists.ini")) {
+        TraceLog(LOG_INFO, "saving failed");
+        return false;
+    }
+    playlist_dirty = false;
+    return true;
+}
+
+static void request_exit(void)
+{
+    if (hud_confirm_is_open()) return;
+    if (!playlist_dirty) { should_close = true; return; }
+    hud_confirm_open(
+        "Unsaved changes",
+        "Your playlist has unsaved changes.\nSave them before exiting?",
+        "Save", "Don't Save", "Cancel"
+    );
+}
+
+static void handle_confirm_result(ConfirmResult r)
+{
+    switch (r) {
+        case CONFIRM_SAVE:
+            if (save_playlist()) should_close = true;
+            else hud_confirm_open("Saving failed", "Could not write playlists.ini.",
+                                  "Retry", "Exit anyway", "Cancel");
+            break;
+        case CONFIRM_DISCARD: should_close = true; break;
+        default: break; // cancel / none
+    }
+}
+
 static void handle_dropped_files(void)
 {
     if (!IsFileDropped()) return;
 
+    bool added = false;
     FilePathList files = LoadDroppedFiles();
     for (unsigned int i = 0; i < files.count; ++i) {
         Track track = {0};
         if (track_load(&track, files.paths[i])) {
             tag_meta_load(&track, files.paths[i], TAG_META_ALL);
             playlist_append(&playlist, track);
+            added = true;
         }
     }
+    prepare_playlist_glyphs();
     playlist_randomizer_init(&randomizer, playlist.count);
     playlist_set(&playlist, playlist.count - 1);
     play_song();
     UnloadDroppedFiles(files);
+
+    if (added) playlist_dirty = true;
 }
 
 static void handle_keyboard(f32 dt)
 {
-    if (input_key_pressed(KEY_F)) {
+    bool typing = hud_playlist_typing();
+
+    if (hud_confirm_is_open()) {
+        handle_confirm_result(hud_confirm_update());
+        return;
+    }
+
+    if (!typing && input_key_pressed(KEY_F)) {
         ToggleBorderlessWindowed();
         SetWindowState(FLAG_WINDOW_UNDECORATED);
     }
@@ -173,12 +233,14 @@ static void handle_keyboard(f32 dt)
     }
     if (input_key_pressed(KEY_R)) player_reset_progress();
     if (input_key_pressed(KEY_C)) {
+        if (playlist.count > 0) playlist_dirty = true;
         player_shutdown();
         playlist_clear(&playlist);
         idle_first = true;
         resource_reset();
     }
-    if (input_key_pressed(KEY_S)) shuffle = !shuffle;
+    if (input_key_pressed(KEY_S) && !input_key_down(KEY_LEFT_CONTROL)) shuffle = !shuffle;
+    if (input_key_pressed(KEY_S) && input_key_down(KEY_LEFT_CONTROL)) save_playlist();
     if (input_key_pressed(KEY_D)) force_detach = !force_detach;
     if (input_key_pressed(KEY_F2)) radial = !radial;
     if (input_key_pressed(KEY_F1)) {
@@ -194,13 +256,6 @@ static void handle_keyboard(f32 dt)
     if (input_key_pressed(KEY_ENTER)) {
         next_song();
         play_song();
-    }
-
-    if (IsKeyPressed(KEY_S) && IsKeyDown(KEY_LEFT_CONTROL)) {
-        TraceLog(LOG_INFO, "saving");
-        if (!playlist_save_ini(&playlist, "playlists.ini")) {
-            TraceLog(LOG_INFO, "saving failed");
-        }
     }
 
     if (player_has_track()) {
@@ -307,6 +362,7 @@ static void draw_frame(int w, int h, f32 dt)
         WHITE
     );
     PROFILER_END;
+    hud_confirm_render(w, h);
     profiler_draw(w, h);
     EndDrawing();
     profiler_update();
@@ -336,6 +392,7 @@ void lyla_init(void)
     }
 
     playlist_load_ini(&playlist, "playlists.ini");
+    prepare_playlist_glyphs();
     discord_init(DISCORD_APP_ID);
     playlist_randomizer_init(&randomizer, playlist.count);
     if (playlist.count > 0 ) {
@@ -353,7 +410,7 @@ void lyla_init(void)
 
 bool lyla_should_close()
 {
-    return should_close || platform_tray_exit_signal();
+    return should_close;
 }
 
 void lyla_update(void) 
@@ -361,19 +418,27 @@ void lyla_update(void)
     int w = GetScreenWidth();
     int h = GetScreenHeight();
     f32 dt = GetFrameTime();
-    dt = fminf(dt, 1.0f/20.0f)/2;
+    // dt = fminf(dt, 1.0f/60.0f)/2;
 
-    window_drag_update(w, h);
     platform_tray_update();
     input_update();
+
+    static bool tray_was_signalled = false;
+    bool tray = platform_tray_exit_signal();
+    if (tray && !tray_was_signalled) request_exit();
+    tray_was_signalled = tray;
+
     if (input_mouse_pressed(MOUSE_BUTTON_RIGHT) && !IsWallpaperAttached()) {
-        should_close = true;
+        request_exit();
     }
     if (player_progress() > 0.998) {
         next_song();
         play_song();
     }
-    handle_dropped_files();
+    if (!hud_confirm_is_open()) {
+        window_drag_update(w, h);
+        handle_dropped_files();
+    }
     handle_keyboard(dt);
     player_update();
     discord_update_presence(player_get_track(), player_paused());
@@ -382,6 +447,7 @@ void lyla_update(void)
 }
 void lyla_shutdown(void) 
 {
+    hud_playlist_free_search();
     platform_tray_shutdown();
     hud_background_shutdown();
     player_shutdown();

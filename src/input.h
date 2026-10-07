@@ -21,5 +21,7 @@ bool    input_mouse_released(int button);
 bool    input_key_down(int key);
 bool    input_key_pressed(int key);
 bool    input_key_released(int key);
+bool    input_key_repeat(int k);
+int input_char_pressed(void);
 
 bool input_keyboard_active(void);

@@ -1,9 +1,10 @@
 #include <raylib.h>
 #include "profiler.h"
 #include "input.h"
-#include "prof.h"
 
 #ifdef WITH_PROFILER
+#include "prof.h"
+
 // it expect that this thing exist from text.c
 extern unsigned char __resources_FOT_Yuruka_Std_ttf[];
 extern int __resources_FOT_Yuruka_Std_ttf_len;
@@ -67,6 +68,6 @@ void profiler_update()
 #else
 void profiler_init(void) { }
 void profiler_draw(int w, int h) { }
-void profiler_update(int) { }
+void profiler_update() { }
 #endif // WITH_PROFILER
 
