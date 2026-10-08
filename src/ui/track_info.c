@@ -79,9 +79,8 @@ static void hud_draw_track_thumbnail(Track* track, f32 group_cx, f32 thumb_size,
     *current_y += thumb_size + padding;
 }
 
-static void hud_draw_track_title(f32 group_cx, f32 text_size, f32 scale, f32* current_y)
+static void hud_draw_track_title(const char* text, f32 group_cx, f32 text_size, f32 scale, f32* current_y)
 {
-    const char *text = TextFormat("%s", player_name());
     f32 actual_text_size = text_size < 12.0f ? 12.0f : text_size; 
     f32 text_w = text_width(text, actual_text_size);
     f32 text_x = group_cx - text_w / 2.0f;
@@ -267,7 +266,7 @@ void hud_draw_track_info(Track* track, int w, int h, f32 elapsed, f32 duration)
         hud_draw_track_thumbnail(track, group_cx, thumb_size, padding, &current_y);
     }
 
-    hud_draw_track_title(group_cx, text_size, scale, &current_y);
+    hud_draw_track_title(track->title, group_cx, text_size, scale, &current_y);
 
     if (has_artist_or_album) {
         hud_draw_track_metadata(track, group_cx, meta_text_size, padding, scale, &current_y);

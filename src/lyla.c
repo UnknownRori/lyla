@@ -127,7 +127,9 @@ void next_song()
         playlist_set(&playlist, idx % playlist.count);
         return;
     }
-    playlist_next(&playlist);
+    if (playlist.count > 0) {
+        playlist_next(&playlist);
+    }
 }
 
 

@@ -1,3 +1,4 @@
+#if !defined(WALLPAPER_ENGINE)
 #include <raylib.h>
 #include <time.h>
 #include "lyla.h"
@@ -69,3 +70,6 @@ int main()
     CloseAudioDevice();
     CloseWindow();
 }
+#else
+#   include "wallpaper_engine.c"
+#endif

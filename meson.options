@@ -3,3 +3,5 @@ option('NO_DISCORD', type: 'boolean', value: false, description: 'Remove discord
 option('WITH_MICROPHONE', type: 'boolean', value: false, description: 'Add microphone support')
 
 option('WITH_PROFILER', type: 'boolean', value: false, description: 'Add profiler using iprof')
+
+option('WALLPAPER_ENGINE', type: 'boolean', value: false, description: 'Compile with wallpaper engine support')
