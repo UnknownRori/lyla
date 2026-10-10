@@ -3,12 +3,15 @@ compile_commands.json
 builddir/
 out/
 
+raw/
+
 *.png
 *.jpg
 *.jpeg
 *.ttf
 *.glsl
 *.zip
+*.kra
 
 *.exe
 *.o
