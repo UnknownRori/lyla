@@ -14,6 +14,7 @@ wallpaper_engine_src = files(
 
 src_files = files(
   'main.c',
+  './config.c',
   './lyla.c',
   './text.c',
   './input.c',
