@@ -30,6 +30,7 @@ src_files = files(
   './ui/background.c',
   './ui/overlay.c',
   './ui/confirm.c',
+  './ui/volume.c',
   './music/player.c',
   './music/track.c',
   './music/playlist.c',

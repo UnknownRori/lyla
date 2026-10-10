@@ -31,6 +31,10 @@ void hud_background(Texture* thumbptr, int w, int h, f32 dt, f32 music_elapsed, 
 void hud_overlay_pause(int w, int h);
 void hud_overlay_mode_on(int w, int h);
 
+void hud_volume_init(void);
+void hud_volume_shutdown(void);
+void hud_volume_render(f32 volume, int w, int h, f32 dt);
+
 typedef enum {
     CONFIRM_NONE = 0,
     CONFIRM_SAVE,

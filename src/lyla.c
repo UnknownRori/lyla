@@ -351,6 +351,7 @@ static void draw_frame(int w, int h, f32 dt)
     }
 
     hud_overlay_pause(w, h);
+    hud_volume_render(player_volume(), w, h, dt);
     if (IsWallpaperAttached() && input_keyboard_active()) hud_overlay_mode_on(w, h);
     hud_render_playlist(&playlist, w, h);
     hud_draw_notifications(w, h);
@@ -389,6 +390,7 @@ void lyla_init(void)
     playlist_init(&playlist);
     input_init();
     hud_background_init();
+    hud_volume_init();
     if (!visualizer_init()) {
         TraceLog(LOG_WARNING, "Glow shader failed to compile, drawing bars only");
     }
@@ -450,6 +452,7 @@ void lyla_update(void)
 void lyla_shutdown(void) 
 {
     hud_playlist_free_search();
+    hud_volume_shutdown();
     platform_tray_shutdown();
     hud_background_shutdown();
     player_shutdown();
