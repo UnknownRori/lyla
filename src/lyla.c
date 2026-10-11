@@ -24,6 +24,7 @@
 #include "platform/wallpaper.h"
 #include "visualizer/fft.h"
 #include "window_drag.h"
+#include "config.h"
 
 PROFILER_DEF(music_visual);
 PROFILER_DEF(idle_visual);
@@ -400,6 +401,7 @@ void lyla_init(void)
     marking = LoadTextureFromImage(rori);
     UnloadImage(rori);
 
+    force_on_top = g_config.always_on_top;
     player_init(analyzer);
 #ifdef WITH_MICROPHONE
     mic_init();

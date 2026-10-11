@@ -39,8 +39,10 @@ int main()
 
     int raylib_cfg_flag = 
             FLAG_WINDOW_UNDECORATED  | 
-            FLAG_WINDOW_TRANSPARENT  | 
-            FLAG_WINDOW_TOPMOST;
+            FLAG_WINDOW_TRANSPARENT;
+    if (g_config.always_on_top) {
+        raylib_cfg_flag |= FLAG_WINDOW_TOPMOST;
+    }
     if (g_config.vsync) {
         raylib_cfg_flag |= FLAG_VSYNC_HINT;
     }

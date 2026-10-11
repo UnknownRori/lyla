@@ -1,6 +1,7 @@
 #include "config.h"
 #include "raylib.h"
 #include "rconfig.h"
+#include <stdlib.h>
 
 static rori_config_t config;
 Config g_config;
@@ -38,7 +39,7 @@ static inline bool config_always_on_top()
 static inline bool config_live_wallpaper()
 {
     bool value = true;
-    if (!rconfig_get_properties_bool(&config, "APP", "fps", &value)) {
+    if (!rconfig_get_properties_bool(&config, "APP", "live_wallpaper", &value)) {
         return 0;
     }
 
