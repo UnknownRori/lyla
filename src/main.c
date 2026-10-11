@@ -1,3 +1,4 @@
+#include "config.h"
 #if !defined(WALLPAPER_ENGINE)
 #include <raylib.h>
 #include <time.h>
@@ -32,17 +33,29 @@ int main()
     SetConsoleOutputCP(CP_UTF8);
 #endif
 
+    if (!config_load()) {
+        TraceLog(LOG_WARNING, "Config failed to load");
+    }
+
     int raylib_cfg_flag = 
             FLAG_WINDOW_UNDECORATED  | 
             FLAG_WINDOW_TRANSPARENT  | 
-            FLAG_WINDOW_TOPMOST | FLAG_VSYNC_HINT;
+            FLAG_WINDOW_TOPMOST;
+    if (g_config.vsync) {
+        raylib_cfg_flag |= FLAG_VSYNC_HINT;
+    }
     SetConfigFlags(raylib_cfg_flag);
     InitWindow(1280, 720, "UnknownRori's Lyla Music Player");
     InitAudioDevice();
 #ifdef WITH_MICROPHONE
     InitMicrophoneDevice(44100, 2);
 #endif
-    // SetTargetFPS(60);
+    if (g_config.fps > 0 && !g_config.vsync) {
+        SetTargetFPS(g_config.fps);
+    } else if (!g_config.vsync) {
+        SetTargetFPS(60);
+    }
+
     SetExitKey(KEY_NULL);
     SetRandomSeed((unsigned int)time(NULL));
 

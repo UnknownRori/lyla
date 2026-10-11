@@ -42,6 +42,7 @@ src_files = files(
   './platform/tray.c',
   './platform/wallpaper.c',
   './platform/force.c',
+  './platform/media.c',
   './thirdparty/discord.c',
   './thirdparty/qrcodegen.c',
   './thirdparty/profiler.c',
@@ -69,10 +70,10 @@ endif
 
 if get_option('WALLPAPER_ENGINE') and os_is_emscripten
   c_args += '-DWALLPAPER_ENGINE'
-    link_args += [
-      '-sEXPORTED_FUNCTIONS=["_main","_UpdateAudioData","_UpdateMediaProperties","_UpdateAlbumArt","_malloc","_free"]',
-      '-sEXPORTED_RUNTIME_METHODS=["ccall","FS","stringToUTF8","lengthBytesUTF8"]'
-    ]
+  link_args += [
+    '-sEXPORTED_FUNCTIONS=["_main","_UpdateAudioData","_UpdateMediaProperties","_UpdateAlbumArt","_malloc","_free"]',
+    '-sEXPORTED_RUNTIME_METHODS=["ccall","FS","stringToUTF8","lengthBytesUTF8"]'
+  ]
   src_files = wallpaper_engine_src
 endif
 
@@ -81,6 +82,7 @@ if os_windows
   winmod = import('windows')
   src_files += winmod.compile_resources('./app.rc')
   link_args += '-static'
+  link_args += ['-lruntimeobject', '-lole32']
   if get_option('buildtype') == 'release' or get_option('WINDOW_NO_CONSOLE')
     exe_args += {'win_subsystem': 'windows'}
   endif

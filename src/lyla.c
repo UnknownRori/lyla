@@ -5,6 +5,7 @@
 #include "./assets/rori.c"
 
 #include "lyla.h"
+#include "platform/media.h"
 #include "utils.h"
 #include "music/randomizer.h"
 #include "music/tag.h"
@@ -108,6 +109,15 @@ static void draw_mic_visualizer(int w, int h, f32 dt)
 }
 #endif
 
+// TODO : Move this away
+
+static void publish_media(Track* track)
+{
+    int hr = media_set_track_utf8(player_name(), player_artist(), player_album(), NULL);
+    if (hr < 0) TraceLog(LOG_WARNING, "media: set_track failed 0x%08X", (unsigned)hr);
+    media_set_playing(!player_paused());
+}
+
 static void prepare_playlist_glyphs(void)
 {
     for (size_t i = 0; i < playlist.count; i++) {
@@ -142,7 +152,9 @@ void play_song()
         play_song();
         return;
     }
+    media_set_playing(1);
     text_prepare(TextFormat("%s %s %s", player_name(), player_artist(),  player_album()));
+    publish_media(track);
 }
 
 static bool save_playlist(void)
@@ -239,6 +251,8 @@ static void handle_keyboard(f32 dt)
         player_shutdown();
         playlist_clear(&playlist);
         idle_first = true;
+        media_set_playing(0);
+        media_clear();
         resource_reset();
     }
     if (input_key_pressed(KEY_S) && !input_key_down(KEY_LEFT_CONTROL)) shuffle = !shuffle;
@@ -261,7 +275,10 @@ static void handle_keyboard(f32 dt)
     }
 
     if (player_has_track()) {
-        if (input_key_pressed(KEY_SPACE)) player_toggle_pause();
+        if (input_key_pressed(KEY_SPACE)) {
+            player_toggle_pause();
+            media_set_playing(!player_paused());
+        }
         if (input_key_pressed(KEY_RIGHT)) player_seek_by(+5);
         if (input_key_pressed(KEY_LEFT))  player_seek_by(-5);
     }
@@ -387,6 +404,8 @@ void lyla_init(void)
 #ifdef WITH_MICROPHONE
     mic_init();
 #endif
+    int mhr = media_init();
+    if (mhr < 0) TraceLog(LOG_WARNING, "media_init failed 0x%08X", (unsigned)mhr);
     playlist_init(&playlist);
     input_init();
     hud_background_init();
@@ -404,6 +423,7 @@ void lyla_init(void)
         playlist_next(&playlist);
         play_song();
         player_toggle_pause();
+        media_set_playing(!player_paused());
         shuffle = false;
     }
 
@@ -451,6 +471,7 @@ void lyla_update(void)
 }
 void lyla_shutdown(void) 
 {
+    media_shutdown();
     hud_playlist_free_search();
     hud_volume_shutdown();
     platform_tray_shutdown();
