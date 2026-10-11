@@ -14,3 +14,4 @@ typedef struct {
 extern Config g_config;
 
 bool config_load();
+bool config_save();

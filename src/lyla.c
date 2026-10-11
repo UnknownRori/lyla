@@ -473,6 +473,7 @@ void lyla_update(void)
 }
 void lyla_shutdown(void) 
 {
+    config_save();
     media_shutdown();
     hud_playlist_free_search();
     hud_volume_shutdown();
