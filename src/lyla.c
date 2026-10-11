@@ -421,13 +421,11 @@ void lyla_init(void)
     discord_init(DISCORD_APP_ID);
     playlist_randomizer_init(&randomizer, playlist.count);
     if (playlist.count > 0 ) {
-        shuffle = true;
-        for (size_t i = 0; i < 4; i++)
-            playlist_next(&playlist);
-        player_toggle_pause();
+        u32 next = playlist_randomizer_next(&randomizer);
+        playlist_set(&playlist, next % playlist.count);
         play_song();
+        player_toggle_pause();
         media_set_playing(!player_paused());
-        shuffle = false;
     }
 
     platform_tray_init();
