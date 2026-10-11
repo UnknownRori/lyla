@@ -422,9 +422,10 @@ void lyla_init(void)
     playlist_randomizer_init(&randomizer, playlist.count);
     if (playlist.count > 0 ) {
         shuffle = true;
-        playlist_next(&playlist);
-        play_song();
+        for (size_t i = 0; i < 4; i++)
+            playlist_next(&playlist);
         player_toggle_pause();
+        play_song();
         media_set_playing(!player_paused());
         shuffle = false;
     }
@@ -432,6 +433,7 @@ void lyla_init(void)
     platform_tray_init();
     window_drag_init();
     profiler_init();
+
 }
 
 bool lyla_should_close()
