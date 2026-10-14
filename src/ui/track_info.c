@@ -1,3 +1,4 @@
+#include "raylib.h"
 #include "ui.h"
 #include "text.h"
 #include "common.h"
@@ -266,7 +267,13 @@ void hud_draw_track_info(Track* track, int w, int h, f32 elapsed, f32 duration)
         hud_draw_track_thumbnail(track, group_cx, thumb_size, padding, &current_y);
     }
 
-    hud_draw_track_title(track->title, group_cx, text_size, scale, &current_y);
+    hud_draw_track_title(
+        track->title != NULL ? track->title : GetFileNameWithoutExt(track->path), 
+        group_cx, 
+        text_size, 
+        scale,
+        &current_y
+    );
 
     if (has_artist_or_album) {
         hud_draw_track_metadata(track, group_cx, meta_text_size, padding, scale, &current_y);
